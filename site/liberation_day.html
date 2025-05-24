@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding the "Liberation Day" Tariffs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Overview: Context of tariffs.
+        - Wallet: Bar chart for household costs, card-based display for item price hikes (Goal: Show direct financial impact; Chart.js).
+        - Farmers: Bar chart for state/product losses (Goal: Highlight damage to heartland; Chart.js).
+        - Businesses: Text for Harley-Davidson, bar chart for job impacts (Goal: Illustrate business harm & job picture; Chart.js).
+        - Big Picture: Bar/Line chart for GDP (Goal: Show overall economic drag; Chart.js).
+        - Textual summaries and key figures extracted and rephrased for clarity and target audience.
+        - Interactions: Click to reveal details, tooltips on charts.
+        - Justification: Visualizations make data more accessible than tables; focused sections allow targeted information seeking.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfbf7; /* Warm beige */ }
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-weight: 500;
+            color: #374151; /* Gray-700 */
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #3b82f6; /* Blue-500 */
+            color: white;
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        h1, h2, h3 { color: #1e3a8a; /* Dark Blue */ }
+        p, li { color: #374151; /* Gray-700 */ line-height: 1.6; }
+        .accent-text { color: #c2410c; /* Orange-700 */ font-weight: 600;}
+        .info-icon {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            line-height: 1.25rem;
+            text-align: center;
+            border-radius: 50%;
+            background-color: #3b82f6; /* Blue-500 */
+            color: white;
+            font-weight: bold;
+            cursor: help;
+            margin-left: 0.25rem;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #1f2937; /* Gray-800 */
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+            width: 200px;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .info-icon:hover + .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between py-4">
+                <h1 class="text-2xl sm:text-3xl font-bold text-center sm:text-left mb-2 sm:mb-0">Understanding the "Liberation Day" Tariffs</h1>
+                <nav id="mainNav" class="flex flex-wrap justify-center sm:justify-end space-x-1 sm:space-x-2">
+                    <a href="#overview" class="nav-link active">Overview</a>
+                    <a href="#wallet" class="nav-link">Your Wallet</a>
+                    <a href="#farmers" class="nav-link">Farmers</a>
+                    <a href="#businesses" class="nav-link">Businesses & Jobs</a>
+                    <a href="#bigpicture" class="nav-link">The Big Picture</a>
+                    <a href="#whatnow" class="nav-link">What Now?</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8 mt-6">
+        <section id="overview" class="content-section active">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">A Common Goal: A Stronger America</h2>
+                <p class="mb-3">We all want a strong, prosperous United States with thriving American industries and fair trade. That's what "Make America Great Again" is all about. This explainer looks at the "Liberation Day" tariffs announced by President Trump in April/May 2025 to see how they might affect us and our shared goal of putting America First.</p>
+                <p class="mb-3">The idea is to understand the *effects* of these policies on American families, businesses, and our economy, not to question the reasons behind them. We need to be sure these actions truly help our nation.</p>
+            </div>
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">What Are These Tariffs?</h2>
+                <p class="mb-3">On "Liberation Day" (April 2, 2025) and in May 2025, President Trump put in place significant new tariffs. These weren't small changes; they hit a lot of imported goods and many countries we trade with.</p>
+                <h3 class="text-xl font-semibold mt-4 mb-2">Key Tariff Actions:</h3>
+                <ul class="list-disc list-inside space-y-2 mb-3">
+                    <li>A <span class="accent-text">10% global baseline tariff</span> on almost all imports.</li>
+                    <li>Higher <span class="accent-text">"reciprocal" tariffs</span> on goods from specific countries (e.g., China, EU, Japan, South Korea, Vietnam). Rates varied and changed, with China initially facing 34%, then a temporary 10% (plus other tariffs).</li>
+                    <li>A <span class="accent-text">20% "Fentanyl-Related" tariff</span> on nearly all goods from China. This stayed even when other China tariffs were temporarily lowered. So, for a while, most Chinese goods faced a combined 30% tariff (20% + 10%), plus any older tariffs.</li>
+                    <li><span class="accent-text">25% "National Security" tariffs</span> on steel and aluminum from all countries (including things like beer cans), and on imported cars, light trucks, and key auto parts.</li>
+                    <li>The <span class="accent-text">$800 duty-free allowance (de minimis) for small packages from China was removed</span>. These now face a 54% tariff or $100 per package.</li>
+                    <li>Threats of more tariffs, like 50% on EU goods and 25% on iPhones not made in the USA.</li>
+                </ul>
+                 <p class="mb-3">The stated goals were to protect American jobs, boost U.S. manufacturing, cut trade deficits, and get other countries to trade fairer. "Reciprocal" tariffs were meant to match what other countries charge us.</p>
+                <p class="mb-3">However, these policies are complicated. For example, the "Fentanyl-Related" tariff on China applies to almost everything from China – electronics, clothes, furniture – not just things directly linked to fentanyl. This means higher prices for us on everyday items.</p>
+                <p>The constant changes in tariff rates and rules also created a lot of uncertainty for American businesses, making it hard for them to plan and invest. This can slow down the economic growth we want for America.</p>
+            </div>
+        </section>
+
+        <section id="wallet" class="content-section">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">The Price You Pay: How Tariffs Hit Your Family's Budget</h2>
+                <p class="mb-3">Tariffs are basically taxes on imported goods. While foreign companies might pay them first, they often pass that cost to American importers, who then pass it to us – American consumers – through higher prices. Think of it as a <span class="accent-text">hidden tax</span>.</p>
+                <p class="mb-3">Studies on past tariffs (2018-2019) showed that these costs were passed on to us <span class="accent-text">fully and quickly</span>. So, it's American families, not foreign countries, who usually end up paying for tariffs.</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Rising Costs for Everyday Items</h3>
+                <p class="mb-3">With a 10% universal tariff, almost any imported good is likely to get more expensive. Analysts estimate these tariffs could raise overall consumer prices by about <span class="accent-text">1% to 1.7%</span> in the short term.</p>
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <h4 class="text-lg font-semibold mb-1">Electronics (TVs, iPhones)</h4>
+                        <p class="text-sm">Likely price increases due to tariffs on goods from China (30% combined), Taiwan, South Korea.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-1">Automobiles</h4>
+                        <p class="text-sm">Could add <span class="accent-text">$2,500 to $5,000+</span> to car prices. Affects imported cars and US-made cars with foreign parts. Short-run price rise estimated at 9.3%.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-1">Clothing & Shoes</h4>
+                        <p class="text-sm">Shoes could go up <span class="accent-text">15-19%</span>, apparel <span class="accent-text">14-16%</span>. Much of our clothing comes from China, Vietnam etc.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-1">Furniture</h4>
+                        <p class="text-sm">Likely price increases as much comes from China and Vietnam.</p>
+                    </div>
+                     <div>
+                        <h4 class="text-lg font-semibold mb-1">Food Items</h4>
+                        <p class="text-sm">Overall food prices up <span class="accent-text">2.3%</span>, fresh produce <span class="accent-text">3.0%</span>. Coffee, chocolate also affected.</p>
+                    </div>
+                     <div>
+                        <h4 class="text-lg font-semibold mb-1">Online Shopping from China</h4>
+                        <p class="text-sm">No more $800 duty-free allowance. Small packages now face a <span class="accent-text">54% tariff or $100 fee</span>.</p>
+                    </div>
+                </div>
+                <p class="mb-3">Remember the washing machine tariffs in Trump's first term? They made washing machines about <span class="accent-text">11% more expensive</span> (around $86 more).</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Impact on Your Household Budget</h3>
+                <div class="chart-container mb-4">
+                    <canvas id="householdImpactChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-600 mb-4">Estimated average loss per household due to 2025 tariffs (2024 dollars).</p>
+                <p class="mb-3">These price hikes add up. One study (Yale Budget Lab) estimates an average loss of <span class="accent-text">$2,300 to $2,800 per household</span> per year. Another (Tax Foundation) estimates an average tax increase of <span class="accent-text">$1,190 to $1,462 per household</span>.</p>
+                <p class="mb-3">Crucially, these tariffs hit <span class="accent-text">lower-income families harder</span>. They spend more of their income on necessities like food and clothing, which see price increases. This can be tough for the "forgotten man and woman" these policies aim to help.</p>
+                <p class="mb-3">"Buying American" doesn't always avoid these costs. Many US-made products use imported parts (steel, electronics). Tariffs on these parts raise costs for American companies, who then charge us more. So, a Michigan-made car might still cost more due to tariffs.</p>
+            </div>
+        </section>
+
+        <section id="farmers" class="content-section">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">Hurting Our Heartland: Impact on American Farmers</h2>
+                <p class="mb-3">When we put tariffs on other countries, they often hit back with their own tariffs on our goods. This is called <span class="accent-text">retaliation</span>. And guess who often gets targeted? American farmers.</p>
+                <p class="mb-3">China, Canada, and the EU have a history of retaliating against U.S. agricultural exports. This is a big problem for farmers in states that strongly support the MAGA movement.</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">American Agriculture in the Crosshairs</h3>
+                <div class="chart-container mb-4">
+                    <canvas id="agriImpactChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-600 mb-4">Examples of U.S. agricultural exports hit by retaliatory tariffs.</p>
+                <ul class="list-disc list-inside space-y-2 mb-3">
+                    <li><span class="font-semibold">Soybeans:</span> Exports to China dropped <span class="accent-text">75%</span> in 2018 during the last trade dispute. Soybeans made up most of the $27 billion in U.S. farm export losses from mid-2018 to late 2019.</li>
+                    <li><span class="font-semibold">Pork:</span> China cancelled a big order of U.S. pork in 2025 due to a reported <span class="accent-text">172% tariff</span>. Mexico, our biggest pork market, could also retaliate.</li>
+                    <li><span class="font-semibold">Corn:</span> Also at risk. Ohio alone faced potential losses of $170 million.</li>
+                    <li><span class="font-semibold">Other Products:</span> Beef, chicken, dairy, fruits, bourbon – all have faced or could face retaliation.</li>
+                </ul>
+                <p class="mb-3">Farmers get a <span class="accent-text">double whammy</span>: they lose export markets AND pay more for things like farm machinery (due to steel/aluminum tariffs) and fertilizer.</p>
+                <p class="mb-3">This means lower farm incomes and financial stress for farming families. During the 2018-2019 trade war, the government had to give <span class="accent-text">$28 billion in aid to farmers</span> – that's taxpayer money used to cover damage from tariff policies.</p>
+                <p class="mb-3">Losing markets to competitors like Brazil (for soybeans) can be permanent. Once foreign buyers find new suppliers, it's hard to get them back. This doesn't help make America stronger.</p>
+                <p>Some reports say foreign countries deliberately target goods from states with strong Republican and Trump support to create political pressure here. So, MAGA supporters in farm country can end up paying a direct price for these trade disputes.</p>
+            </div>
+        </section>
+
+        <section id="businesses" class="content-section">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">Making it Tougher for American Businesses & Workers</h2>
+                <p class="mb-3">Tariffs on imported materials like steel, aluminum, and other parts mean <span class="accent-text">higher costs for American manufacturers</span>. This affects industries like car making, construction, and appliances.</p>
+                <p class="mb-3">Even companies that seem like they'd benefit can get hurt. A furniture maker in North Carolina might like tariffs on Chinese furniture, but if they import special yarns or hardware, their costs go up too.</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Iconic American Brands Under Pressure: Harley-Davidson</h3>
+                <p class="mb-3">When the U.S. put tariffs on European goods, the EU hit back with tariffs on American motorcycles, making Harley-Davidsons <span class="accent-text">50-56% more expensive</span> in Europe. This made them hard to sell.</p>
+                <p class="mb-3">To deal with this, Harley-Davidson moved some production overseas (e.g., to Thailand) and <span class="accent-text">closed its plant in Kansas City, Missouri</span>. So, tariffs meant to protect U.S. jobs ended up causing an American company to move production out and cut American jobs. This is the opposite of "America First."</p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Impact on American Jobs</h3>
+                <div class="chart-container mb-4">
+                    <canvas id="jobsImpactChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-600 mb-4">Estimated net impact on U.S. jobs.</p>
+                <p class="mb-3">While tariffs might create some jobs in protected industries, studies show they often lead to <span class="accent-text">more job losses elsewhere</span> (like services and farming). Overall employment tends to fall.</p>
+                <p class="mb-3">The Tax Foundation estimated these tariffs could lead to <span class="accent-text">685,000 fewer full-time jobs</span>.</p>
+                <p class="mb-3">Analyses of the 2018-2019 tariffs found they <span class="accent-text">failed to boost overall employment</span> and actually harmed manufacturing due to higher input costs and foreign retaliation. For example, steel tariffs might have created 1,000 steel jobs but cost about 75,000 jobs in industries that use steel.</p>
+                <p class="mb-3">The idea that tariffs automatically "bring jobs back" is too simple. They can shift jobs from efficient industries to less efficient ones, or cost consumers a lot for each job "saved."</p>
+            </div>
+             <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Small Businesses and Uncertainty</h3>
+                <p class="mb-3">Small and medium-sized businesses often have a harder time absorbing these new costs or changing their suppliers quickly. This can make them less competitive.</p>
+                <p class="mb-3">The constantly changing tariff rules create <span class="accent-text">major uncertainty</span>. Businesses hate uncertainty. It makes them less likely to invest, expand, or hire new workers. This slows down the whole economy.</p>
+                <p>When U.S. businesses pay more for imported parts, their products become more expensive for us and for selling overseas. This hurts their ability to compete globally.</p>
+            </div>
+        </section>
+
+        <section id="bigpicture" class="content-section">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">The Bigger Picture: What Tariffs Mean for America's Strength</h2>
+                <p class="mb-3">Many economic studies project that these tariffs will <span class="accent-text">slow down the American economy</span>.</p>
+                <div class="chart-container mb-4">
+                    <canvas id="gdpImpactChart"></canvas>
+                </div>
+                <p class="text-center text-sm text-gray-600 mb-4">Projected long-run reduction in U.S. GDP due to tariffs.</p>
+                <ul class="list-disc list-inside space-y-2 mb-3">
+                    <li>The U.S. economy could be <span class="accent-text">0.4% to 0.9% smaller</span> in the long run. That's like losing $110 billion or more each year.</li>
+                    <li>U.S. real GDP growth could be <span class="accent-text">0.7 percentage points lower</span> in 2025 alone.</li>
+                    <li>Overall real income for American households is also projected to fall.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Are We Really "Winning" the Trade War?</h3>
+                <p class="mb-3">Tariffs do bring in money for the government. But this money mostly comes from <span class="accent-text">American businesses and families paying higher prices</span>. It's not "free money" from other countries.</p>
+                <p class="mb-3">The idea that China (or other countries) "pays the tariffs" is <span class="accent-text">largely untrue</span> according to economic studies. We, the American consumers and importers, bear most of the cost.</p>
+                <p class="mb-3">Tariffs might not even fix the trade deficit. Some studies suggest they could make it worse. And sometimes, official numbers about trade deficits have been misstated.</p>
+                <p class="mb-3">Using "national security" to put tariffs on allies like Canada, Mexico, the EU, Japan, and South Korea can strain important relationships. These alliances are vital for America's true strength and security.</p>
+                <p>Protecting one industry (like steel) can look like a win, but it can hurt many other industries that use steel, like car makers. It can shift resources to less efficient parts of our economy, making the whole country poorer in the long run.</p>
+            </div>
+        </section>
+
+        <section id="whatnow" class="content-section">
+            <div class="card">
+                <h2 class="text-2xl font-semibold mb-4">Reconsidering the Path to a Stronger America</h2>
+                <p class="mb-3">So, what does all this mean for us as MAGA supporters who want the best for America?</p>
+                <p class="mb-3">These "Liberation Day" tariffs could lead to:
+                    <ul class="list-disc list-inside space-y-1 my-2">
+                        <li>Higher prices for our families.</li>
+                        <li>Big problems for our farmers due to retaliation.</li>
+                        <li>More challenges and uncertainty for American businesses, especially in MAGA country.</li>
+                        <li>A weaker overall U.S. economy.</li>
+                    </ul>
+                These outcomes might not be what we intended when we supported policies to put America First.
+                </p>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-3">Shared Goals, Different Paths</h3>
+                <p class="mb-3">We all want a strong, booming America with great jobs and industries. The question isn't about the goal, but the <span class="accent-text">best way to get there</span>.</p>
+                <p class="mb-3">If these tariffs are causing these negative effects, are they really the best tool for an "America First" agenda? History often shows that broad tariffs can cause lasting harm.</p>
+                <p class="mb-3">Even the Trump administration sometimes had to roll back or suspend tariffs, which might suggest the high tariffs were causing too much damage to our own economy.</p>
+            </div>
+            <div class="card">
+                 <h3 class="text-xl font-semibold mb-3">A Call to Look at the Full Picture</h3>
+                <p class="mb-3">To make America truly great, we need to look at all the facts, including the hidden costs and how these policies affect all Americans.</p>
+                <p class="mb-3">"America First" should mean policies that strengthen the whole nation and create prosperity for everyone, without putting unfair burdens on some groups or hurting our economy by mistake.</p>
+                <p>Maybe there are other ways to achieve our "America First" goals that don't have these downsides. Things like investing in American infrastructure, education, and research; tax reforms that truly help U.S. production without these broad tariffs; or smarter, more targeted trade deals that go after specific unfair practices instead of taxing everything.</p>
+                <p class="font-semibold">True national strength comes from a healthy, resilient economy for all Americans.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-8 mt-10 border-t border-gray-200">
+        <p class="text-sm text-gray-500">This information is based on analysis of the "Liberation Day" tariffs. Sources for specific data points are available in the original comprehensive report.</p>
+    </footer>
+
+    <script>
+        const navLinks = document.querySelectorAll('#mainNav a');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        function updateContent(hash) {
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.hash === hash);
+            });
+            contentSections.forEach(section => {
+                section.classList.toggle('active', `#${section.id}` === hash);
+            });
+            window.scrollTo(0, 0);
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetHash = event.currentTarget.hash;
+                history.pushState(null, null, targetHash);
+                updateContent(targetHash);
+            });
+        });
+
+        const initialHash = window.location.hash || '#overview';
+        updateContent(initialHash);
+
+        window.addEventListener('popstate', () => {
+            updateContent(window.location.hash || '#overview');
+        });
+
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+        }
+        
+        Chart.defaults.font.family = 'Inter, sans-serif';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(31, 41, 55, 0.9)'; // Gray-800
+        Chart.defaults.plugins.tooltip.titleColor = '#f3f4f6'; // Gray-100
+        Chart.defaults.plugins.tooltip.bodyColor = '#d1d5db'; // Gray-300
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 4;
+
+
+        if (document.getElementById('householdImpactChart')) {
+            new Chart(document.getElementById('householdImpactChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Yale Budget Lab Est.', 'Tax Foundation Est.'],
+                    datasets: [{
+                        label: 'Average Annual Loss per Household ($)',
+                        data: [2550, 1326], // Average of ranges
+                        backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(249, 115, 22, 0.7)'], // Red-500, Orange-500
+                        borderColor: ['rgba(239, 68, 68, 1)', 'rgba(249, 115, 22, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD ($)' } } },
+                    plugins: {
+                        title: { display: true, text: 'Estimated Household Financial Impact', font: { size: 16 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    if (context.label === 'Yale Budget Lab Est.') {
+                                        label += ' (range: $2300-$2800)';
+                                    } else if (context.label === 'Tax Foundation Est.') {
+                                        label += ' (range: $1190-$1462)';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (document.getElementById('agriImpactChart')) {
+            new Chart(document.getElementById('agriImpactChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Soybeans (to China, 2018)', 'Pork (China tariff)', 'Corn (Ohio potential loss)'],
+                    datasets: [{
+                        label: 'Impact Examples',
+                        data: [75, 172, 170], // % drop, % tariff, $M loss (mixed units, for illustration)
+                        backgroundColor: ['rgba(22, 163, 74, 0.7)', 'rgba(217, 119, 6, 0.7)', 'rgba(202, 138, 4, 0.7)'], // Green-600, Amber-600, Yellow-600
+                        borderColor: ['rgba(22, 163, 74, 1)', 'rgba(217, 119, 6, 1)', 'rgba(202, 138, 4, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { beginAtZero: true, title: { display: true, text: 'Value (Illustrative Units)' } } },
+                    plugins: {
+                        title: { display: true, text: 'Agricultural Impacts (Illustrative)', font: { size: 16 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.parsed.x;
+                                    if (context.label === 'Soybeans (to China, 2018)') return `Soybean exports to China: -${val}%`;
+                                    if (context.label === 'Pork (China tariff)') return `Reported tariff on U.S. pork to China: ${val}%`;
+                                    if (context.label === 'Corn (Ohio potential loss)') return `Ohio potential corn export loss: $${val} Million`;
+                                    return `${context.label}: ${val}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+         if (document.getElementById('jobsImpactChart')) {
+            new Chart(document.getElementById('jobsImpactChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Net Full-Time Jobs (Tax Foundation Est.)', 'Steel: New Jobs vs Downstream Losses'],
+                    datasets: [{
+                        label: 'Job Impact Estimates',
+                        data: [-685000, null], 
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red-500
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1,
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'Steel: New Jobs',
+                        data: [null, 1000],
+                        backgroundColor: 'rgba(34, 197, 94, 0.7)', // Green-500
+                        borderColor: 'rgba(34, 197, 94, 1)',
+                        borderWidth: 1,
+                        stack: 'Stack 1',
+                    },
+                    {
+                        label: 'Steel: Downstream Job Losses',
+                        data: [null, -75000],
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)', // Red-500
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1,
+                        stack: 'Stack 1',
+                    }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false, title: { display: true, text: 'Number of Jobs' } } },
+                    plugins: {
+                        title: { display: true, text: 'Estimated Impact on U.S. Jobs', font: { size: 16 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (document.getElementById('gdpImpactChart')) {
+            new Chart(document.getElementById('gdpImpactChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Tax Foundation', 'Yale Budget Lab', 'CBO (10% tariff)', 'NBER (Real Income)'],
+                    datasets: [{
+                        label: 'Projected Long-Run Reduction (%)',
+                        data: [0.7, 0.4, 0.6, 1.0], // CBO is illustrative for GDP, NBER is real income
+                        backgroundColor: [
+                            'rgba(192, 75, 75, 0.7)', 
+                            'rgba(200, 100, 50, 0.7)',
+                            'rgba(150, 100, 150, 0.7)',
+                            'rgba(100, 150, 200, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(192, 75, 75, 1)', 
+                            'rgba(200, 100, 50, 1)',
+                            'rgba(150, 100, 150, 1)',
+                            'rgba(100, 150, 200, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Percentage Reduction (%)' } } },
+                    plugins: {
+                        title: { display: true, text: 'Projected Economic Drag (GDP/Income)', font: { size: 16 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(1) + '%';
+                                    }
+                                    if (context.label === 'Tax Foundation') label += ' (GDP)';
+                                    if (context.label === 'Yale Budget Lab') label += ' (GDP)';
+                                    if (context.label === 'CBO (10% tariff)') label += ' (GDP, illustrative)';
+                                    if (context.label === 'NBER (Real Income)') label += ' (Real Income)';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

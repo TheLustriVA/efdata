@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBA Circular Flow Model & Data Sources Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - RBA Circular Flow Model: Goal: Inform/Organize. Viz: HTML/CSS/JS interactive diagram (sectors as divs, flows as styled borders/Unicode arrows). Interaction: Hover/click on sectors/flows to show descriptions. Justification: Visually represents the core concept, making it easier to grasp than text alone. Method: Custom HTML/CSS with Tailwind, JS for interactivity.
+        - Table 1 (Component Mapping): Goal: Inform/Organize. Viz: Interactive HTML table. Interaction: Click row to expand/show details. Justification: Structured presentation of mappings, enhanced by click-to-reveal. Method: HTML/Tailwind, JS for expansion.
+        - Tables 2, 3, 4, 5 (Data Sources): Goal: Inform. Viz: Static/Interactive HTML tables. Interaction: Display example API endpoints/links (text). Justification: Clear presentation of source details. Method: HTML/Tailwind.
+        - Conceptual GDP Chart: Goal: Inform (demonstrate Chart.js). Viz: Bar chart (Chart.js/Canvas). Interaction: Tooltips on hover. Justification: Shows how fetched data *could* be visualized, fulfilling Chart.js requirement. Data is hardcoded example. Method: Chart.js.
+        - Text Blocks: Goal: Inform. Presentation: Styled HTML. Interaction: JS show/hide for some detailed explanations if needed. Justification: Standard way to present textual information from the report.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-button.active { background-color: #0284c7; color: white; } /* sky-600 */
+        .tab-button { background-color: #e0f2fe; color: #0369a1; transition: background-color 0.3s, color 0.3s; } /* sky-100, sky-700 */
+        .tab-button:hover { background-color: #bae6fd; } /* sky-200 */
+        .sub-tab-button.active { background-color: #0d9488; color: white; } /* teal-600 */
+        .sub-tab-button { background-color: #ccfbf1; color: #0f766e; transition: background-color 0.3s, color 0.3s; } /* teal-100, teal-700 */
+        .sub-tab-button:hover { background-color: #99f6e4; } /* teal-200 */
+        
+        .sector-box {
+            border: 2px solid #0ea5e9; /* sky-500 */
+            background-color: #f0f9ff; /* sky-50 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sector-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .flow-description {
+            font-size: 0.8rem;
+            color: #475569; /* slate-600 */
+        }
+        .arrow {
+            color: #334155; /* slate-700 */
+            font-weight: bold;
+        }
+        .details-panel {
+            background-color: #f8fafc; /* slate-50 */
+            border: 1px solid #e2e8f0; /* slate-200 */
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+        }
+        .table-expandable-row td {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        .table-expandable-row:hover {
+            background-color: #f1f5f9; /* slate-100 */
+            cursor: pointer;
+        }
+        .expanded-content {
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background-color: #1e293b; /* slate-800 */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 10;
+        }
+        .has-tooltip:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+    <div class="container mx-auto p-4 md:p-6 lg:p-8 max-w-6xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-700">RBA Circular Flow Model & Data Sources</h1>
+            <p class="text-lg text-slate-600 mt-2">An interactive guide to understanding Australia's macroeconomic flows and accessing relevant data.</p>
+        </header>
+
+        <nav id="mainTabs" class="mb-6 flex flex-wrap justify-center gap-2 sticky top-0 bg-slate-100 py-3 z-20 shadow-sm">
+            <button class="tab-button active py-2 px-4 rounded-md font-semibold" onclick="showTab('framework', this)">1. RBA Framework</button>
+            <button class="tab-button py-2 px-4 rounded-md font-semibold" onclick="showTab('mapping', this)">2. Data Mapping</button>
+            <button class="tab-button py-2 px-4 rounded-md font-semibold" onclick="showTab('sources', this)">3. Data Sources</button>
+            <button class="tab-button py-2 px-4 rounded-md font-semibold" onclick="showTab('strategy', this)">4. Acquisition Strategy</button>
+            <button class="tab-button py-2 px-4 rounded-md font-semibold" onclick="showTab('conclusion', this)">5. Conclusion</button>
+        </nav>
+
+        <main>
+            <section id="framework" class="tab-content bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-4">1. The RBA's Macroeconomic Circular Flow Model</h2>
+                <p class="text-slate-700 mb-4 leading-relaxed">This section outlines the Reserve Bank of Australia's (RBA) definition of the circular flow model, its core components, and the fundamental interactions within the economy. The model illustrates how money, resources, and goods/services move between different sectors.</p>
+                
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">1.1 RBA's Definition and Visual Framework</h3>
+                    <p class="text-slate-700 mb-2">The RBA defines the circular flow model as a depiction of "the flow of money and goods and services between different sectors of the economy."</p>
+                    <p class="text-slate-700 mb-4">The primary sectors are Households, Firms, Financial, Government, and Overseas. Click on a sector or flow in the diagram below to learn more.</p>
+                    
+                    <div class="bg-slate-50 p-4 rounded-lg shadow-inner">
+                        <h4 class="text-lg font-semibold text-center text-sky-700 mb-4">Simplified 5-Sector Circular Flow Diagram</h4>
+                        <div class="relative max-w-2xl mx-auto text-sm md:text-base">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                <div class="md:col-span-3 flex justify-center mb-2">
+                                    <div id="households-sector" class="sector-box w-40 md:w-48" onclick="showSectorDetail('households')">Households <div class="tooltip">Individuals in the economy</div></div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center space-y-1">
+                                    <span class="arrow text-2xl transform -rotate-90">➔</span>
+                                    <p class="flow-description">Expenditure (C)</p>
+                                    <span class="arrow text-2xl transform rotate-90">➔</span>
+                                    <p class="flow-description">Economic Resources</p>
+                                </div>
+
+                                <div id="firms-sector" class="sector-box w-40 md:w-48 mx-auto" onclick="showSectorDetail('firms')">Firms <div class="tooltip">Businesses in the economy</div></div>
+                                
+                                <div class="flex flex-col items-center space-y-1">
+                                     <span class="arrow text-2xl transform -rotate-90">➔</span>
+                                    <p class="flow-description">Income (Y)</p>
+                                     <span class="arrow text-2xl transform rotate-90">➔</span>
+                                    <p class="flow-description">Output (Goods/Services)</p>
+                                </div>
+
+                                <div id="financial-sector" class="sector-box w-40 md:w-48" onclick="showSectorDetail('financial')">Financial Sector <div class="tooltip">Banks, financial institutions</div></div>
+                                <div id="government-sector" class="sector-box w-40 md:w-48 mx-auto" onclick="showSectorDetail('government')">Government Sector <div class="tooltip">National, state, local gov.</div></div>
+                                <div id="overseas-sector" class="sector-box w-40 md:w-48" onclick="showSectorDetail('overseas')">Overseas Sector <div class="tooltip">Rest of the world</div></div>
+                            </div>
+                            
+                            <div class="text-center mt-4 text-xs text-slate-500">
+                                Simplified representation. Arrows indicate primary money flows (e.g., HH <span class="arrow">➔</span> Firms: Expenditure) and resource/output flows (e.g., HH <span class="arrow">➔</span> Firms: Labour). Other flows (S, I, T, G, M, X) connect these sectors.
+                            </div>
+                            <div id="sector-detail-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                                <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+                                    <h4 id="popup-title" class="text-xl font-semibold text-sky-700 mb-3">Sector Detail</h4>
+                                    <p id="popup-description" class="text-slate-700 mb-4"></p>
+                                    <button onclick="closeSectorDetail()" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow w-full">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="flow-details" class="mt-4 p-3 bg-sky-50 rounded-md border border-sky-200 hidden">
+                            <h5 class="font-semibold text-sky-700">Flow Details:</h5>
+                            <p id="flow-detail-text" class="text-sm text-slate-700"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">1.2 Conceptual Underpinnings: Leakages and Injections</h3>
+                    <p class="text-slate-700 mb-2">The circular flow is balanced by leakages (withdrawals) and injections (additions):</p>
+                    <ul class="list-disc list-inside text-slate-700 mb-2 space-y-1">
+                        <li><strong>Leakages:</strong> Savings (S), Taxation (T), Imports (M)</li>
+                        <li><strong>Injections:</strong> Investment (I), Government Spending (G), Exports (X)</li>
+                    </ul>
+                    <p class="text-slate-700 mb-2">For equilibrium: <code class="bg-slate-200 p-1 rounded text-sm">$S + T + M = I + G + X$</code></p>
+                    <p class="text-slate-700">This identity is crucial for validating any comprehensive model of the circular flow.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold text-sky-600 mb-3">1.3 RBA's Broader Macroeconomic Modeling</h3>
+                    <p class="text-slate-700 mb-2">For policy analysis, the RBA uses sophisticated models like MARTIN (macroeconometric) and DINGO (DSGE). These analyze how monetary policy and shocks affect sectors and flows, which are counterparts to the circular flow components.</p>
+                    <p class="text-slate-700">Key transmission channels include the Exchange Rate, Asset Prices/Wealth, Savings/Investment, and Cash Flow channels.</p>
+                </div>
+            </section>
+
+            <section id="mapping" class="tab-content hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-4">2. Data Requirements: Mapping Model Components to Variables</h2>
+                <p class="text-slate-700 mb-6 leading-relaxed">To quantitatively model the circular flow, its conceptual components must be mapped to measurable economic variables, typically found in national accounts statistics. This section provides an overview of these mappings. Click on a row to see more details about the economic variables.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Sector</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">RBA Model Flow</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Specific Economic Variable (Examples)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataMappingTableBody" class="bg-white divide-y divide-slate-200">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="sources" class="tab-content hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-4">3. Open Data Sources for Australian Macroeconomic Data</h2>
+                <p class="text-slate-700 mb-6 leading-relaxed">Acquiring data for the circular flow model involves accessing information from the Reserve Bank of Australia (RBA) for financial statistics and the Australian Bureau of Statistics (ABS) for national accounts, trade, and government finance data. This section explores these sources.</p>
+                
+                <nav id="sourcesSubTabs" class="mb-4 flex flex-wrap gap-2">
+                    <button class="sub-tab-button active py-2 px-3 rounded-md font-medium text-sm" onclick="showSubTab('rbaData', 'sourcesSubTabsContainer', this)">RBA Data</button>
+                    <button class="sub-tab-button py-2 px-3 rounded-md font-medium text-sm" onclick="showSubTab('absData', 'sourcesSubTabsContainer', this)">ABS Data</button>
+                </nav>
+
+                <div id="sourcesSubTabsContainer">
+                    <div id="rbaData" class="sub-tab-content">
+                        <h3 class="text-xl font-semibold text-teal-600 mb-3">3.1 Reserve Bank of Australia (RBA) Data</h3>
+                        <p class="text-slate-700 mb-4">The RBA provides key financial and monetary statistics, often through downloadable tables (CSV/XLSX) on their website. These are crucial for understanding the financial sector and monetary policy impacts.</p>
+                        <div id="rbaDataTable" class="space-y-3">
+                        </div>
+                    </div>
+                    <div id="absData" class="sub-tab-content hidden">
+                        <h3 class="text-xl font-semibold text-teal-600 mb-3">3.2 Australian Bureau of Statistics (ABS) Data</h3>
+                        <p class="text-slate-700 mb-4">The ABS is the main source for national accounts, international trade, and government finance statistics. They offer various access methods, including APIs.</p>
+                        
+                        <div class="mb-6 p-4 border border-teal-200 rounded-lg bg-teal-50">
+                            <h4 class="text-lg font-semibold text-teal-700 mb-2">ABS Indicator API (Headline Stats)</h4>
+                            <p class="text-slate-700 mb-2">Provides headline figures for GDP components (C, I, G, X, M) and International Trade. Requires an API key.</p>
+                            <p class="text-slate-700 mb-1"><strong class="font-medium">Endpoint:</strong> <code class="text-sm bg-slate-200 p-1 rounded">https://indicator.api.abs.gov.au</code></p>
+                            <p class="text-slate-700 mb-1"><strong class="font-medium">Key Dataflows:</strong> <code class="text-sm bg-slate-200 p-1 rounded">GDPE_H</code> (GDP Expenditure), <code class="text-sm bg-slate-200 p-1 rounded">ITGS_H</code> (Intl. Trade).</p>
+                            <p class="text-slate-700"><strong class="font-medium">Example Query (Conceptual for GDPE_H):</strong> <code class="text-sm bg-slate-200 p-1 rounded">GET /v1/data/GDPE_H/json</code> (with x-api-key header).</p>
+                        </div>
+
+                        <div class="mb-6 p-4 border border-teal-200 rounded-lg bg-teal-50">
+                            <h4 class="text-lg font-semibold text-teal-700 mb-2">ABS Data API (Beta) (Detailed Stats via SDMX)</h4>
+                            <p class="text-slate-700 mb-2">Offers detailed statistics using the SDMX standard. Covers National Accounts, Trade, etc. API key recommended.</p>
+                            <p class="text-slate-700 mb-1"><strong class="font-medium">Endpoint:</strong> <code class="text-sm bg-slate-200 p-1 rounded">https://api.data.abs.gov.au</code></p>
+                            <p class="text-slate-700 mb-1"><strong class="font-medium">Discovering Data:</strong> Use ABS Data Explorer to find `dataflowIdentifier` (e.g., <code class="text-sm bg-slate-200 p-1 rounded">ABS,NA_MAIN_AGGS,1.0.0</code>) and `dataKey` (e.g., <code class="text-sm bg-slate-200 p-1 rounded">M1.AUS.Q</code>).</p>
+                            <p class="text-slate-700"><strong class="font-medium">Example Query Path (Conceptual):</strong> <code class="text-sm bg-slate-200 p-1 rounded">/rest/data/{dataflowIdentifier}/{dataKey}</code></p>
+                        </div>
+                        
+                        <div class="mb-6 p-4 border border-teal-200 rounded-lg bg-teal-50">
+                             <h4 class="text-lg font-semibold text-teal-700 mb-2">ABS Web-Scrapable Data (e.g., GFS)</h4>
+                             <p class="text-slate-700 mb-2">Detailed Government Finance Statistics (GFS) are often available as XLSX downloads from ABS publication pages (e.g., Cat. 5512.0).</p>
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-teal-700 mb-3 mt-6">Conceptual GDP Components Chart</h4>
+                        <p class="text-slate-700 mb-3">This chart is a conceptual representation of how data, potentially sourced from the ABS (e.g., via `GDPE_H`), could be visualized. The data below is illustrative.</p>
+                        <div class="chart-container p-4 bg-white rounded-lg shadow">
+                            <canvas id="gdpComponentsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="strategy" class="tab-content hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-4">4. Consolidated Data Acquisition Strategy</h2>
+                <p class="text-slate-700 mb-6 leading-relaxed">This section provides a recommended strategy for acquiring data for each component of the circular flow model, along with workflow suggestions and maintenance considerations.</p>
+                
+                <h3 class="text-xl font-semibold text-sky-600 mb-3">4.1 Recommended Sources per Component</h3>
+                <div id="acquisitionStrategyTable" class="space-y-3">
+                </div>
+
+                <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-3">4.2 Workflow Recommendations</h3>
+                <ol class="list-decimal list-inside text-slate-700 space-y-2">
+                    <li><strong>API Key Acquisition:</strong> Obtain keys for ABS Indicator API (mandatory) and consider for Data API (Beta).</li>
+                    <li><strong>Retrieve Headline Aggregates:</strong> Use ABS Indicator API for high-level C, I, G, X, M.</li>
+                    <li><strong>Access Detailed ABS Data:</strong> Use ABS Data Explorer to identify dataflows/keys for the Data API (Beta).</li>
+                    <li><strong>Acquire RBA Data:</strong> Programmatically download CSV/XLSX from RBA statistical tables.</li>
+                    <li><strong>Obtain GFS Data:</strong> Download XLSX from ABS GFS publications (e.g., Cat. 5512.0).</li>
+                    <li><strong>Data Alignment:</strong> Harmonize frequency, price basis, seasonal adjustment, and definitions.</li>
+                </ol>
+
+                <h3 class="text-xl font-semibold text-sky-600 mt-6 mb-3">4.3 Considerations for Model Maintenance</h3>
+                <ul class="list-disc list-inside text-slate-700 space-y-1">
+                    <li>Account for data revisions from RBA and ABS.</li>
+                    <li>Monitor APIs (especially Beta versions) for changes.</li>
+                    <li>Adapt to structural changes in data presentation (e.g., ABS phasing out catalogue numbers).</li>
+                    <li>Rely on metadata for API-based sources.</li>
+                    <li>Address data integration challenges (harmonization).</li>
+                </ul>
+            </section>
+
+            <section id="conclusion" class="tab-content hidden bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-sky-600 mb-4">5. Conclusion</h2>
+                <p class="text-slate-700 mb-4 leading-relaxed">The RBA's circular flow model is a vital conceptual tool. Quantifying it requires translating its components into measurable economic variables, primarily sourced from the RBA and ABS.</p>
+                <p class="text-slate-700 mb-4 leading-relaxed">Accessing this data involves a hybrid strategy: leveraging ABS APIs (Indicator and Data API Beta, using Data Explorer for guidance) and programmatic downloads of RBA tables and specific ABS files (like GFS).</p>
+                <p class="text-slate-700 leading-relaxed">Successful modeling demands careful data source selection, API key management, understanding data structures (especially SDMX), robust data integration, and ongoing maintenance to adapt to revisions and evolving dissemination methods. This interactive guide aims to provide a foundational understanding for these tasks.</p>
+            </section>
+        </main>
+
+        <footer class="mt-12 text-center text-sm text-slate-500 py-6 border-t border-slate-200">
+            <p>Developed from the report: "The Reserve Bank of Australia's Circular Flow Model: Framework and Open Data Sources for Macroeconomic Modelling".</p>
+            <p>This is a conceptual tool for understanding data sources and does not perform live data queries.</p>
+        </footer>
+    </div>
+
+<script>
+    const mainTabs = document.getElementById('mainTabs').querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const sourcesSubTabs = document.getElementById('sourcesSubTabs')?.querySelectorAll('.sub-tab-button');
+    const sourcesSubTabContents = document.getElementById('sourcesSubTabsContainer')?.querySelectorAll('.sub-tab-content');
+
+    function showTab(tabId, clickedButton) {
+        tabContents.forEach(content => content.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+        mainTabs.forEach(button => button.classList.remove('active'));
+        clickedButton.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showSubTab(subTabId, containerId, clickedButton) {
+        const container = document.getElementById(containerId);
+        container.querySelectorAll('.sub-tab-content').forEach(content => content.classList.add('hidden'));
+        container.querySelector('#' + subTabId).classList.remove('hidden');
+        
+        const buttonsInContainer = container.previousElementSibling.querySelectorAll('.sub-tab-button');
+        buttonsInContainer.forEach(button => button.classList.remove('active'));
+        clickedButton.classList.add('active');
+    }
+    
+    const sectorDetails = {
+        households: { 
+            name: "Household Sector", 
+            description: "Individuals and families in the economy. They supply labor and capital, consume goods and services, save, and pay taxes.",
+            flows: [
+                { to: "Firms", type: "Expenditure (C) on goods & services", direction: "➔" },
+                { to: "Firms", type: "Economic Resources (Land, Labour, Capital)", direction: "➔" },
+                { from: "Firms", type: "Income (Wages, Rent, Profit, Interest)", direction: "➔" },
+                { to: "Financial Sector", type: "Savings (S)", direction: "➔" },
+                { to: "Government", type: "Taxation (T)", direction: "➔" },
+                { from: "Government", type: "Government Benefits/Transfers", direction: "➔" },
+                { to: "Overseas", type: "Payments for Imports (M)", direction: "➔" }
+            ]
+        },
+        firms: { 
+            name: "Firms Sector", 
+            description: "Businesses that produce goods and services. They hire resources, invest in capital, and sell output.",
+            flows: [
+                { from: "Households", type: "Expenditure (C)", direction: "➔" },
+                { from: "Households", type: "Economic Resources", direction: "➔" },
+                { to: "Households", type: "Income (Wages, etc.)", direction: "➔" },
+                { to: "Households", type: "Output (Goods & Services)", direction: "➔" },
+                { from: "Financial Sector", type: "Investment Funds (I)", direction: "➔" },
+                { to: "Government", type: "Taxation (T)", direction: "➔" },
+                { from: "Government", type: "Government Expenditure (G)", direction: "➔" },
+                { from: "Overseas", type: "Payments for Exports (X)", direction: "➔" }
+            ]
+        },
+        financial: { 
+            name: "Financial Sector", 
+            description: "Intermediaries like banks that channel savings from households into investment by firms.",
+            flows: [
+                { from: "Households", type: "Savings (S)", direction: "➔" },
+                { to: "Firms", type: "Investment Funds (I)", direction: "➔" }
+            ]
+        },
+        government: { 
+            name: "Government Sector", 
+            description: "Collects taxes and spends on public goods, services, and transfers.",
+            flows: [
+                { from: "Households", type: "Taxation (T)", direction: "➔" },
+                { from: "Firms", type: "Taxation (T)", direction: "➔" },
+                { to: "Firms/Households", type: "Government Expenditure (G) & Transfers", direction: "➔" }
+            ]
+        },
+        overseas: { 
+            name: "Overseas Sector", 
+            description: "Represents all international economic transactions, including exports and imports.",
+            flows: [
+                { to: "Firms", type: "Payments for Exports (X)", direction: "➔" },
+                { from: "Households/Firms", type: "Payments for Imports (M)", direction: "➔" }
+            ]
+        }
+    };
+
+    function showSectorDetail(sectorKey) {
+        const detail = sectorDetails[sectorKey];
+        if (!detail) return;
+        document.getElementById('popup-title').textContent = detail.name;
+        let descriptionHtml = `<p class="mb-2">${detail.description}</p><h5 class="font-semibold text-slate-600 mt-3 mb-1">Key Flows:</h5><ul class="list-disc list-inside text-sm space-y-1">`;
+        detail.flows.forEach(flow => {
+            if (flow.to && flow.from) {
+                 descriptionHtml += `<li>${flow.direction === '➔' ? flow.from : flow.to} ${flow.direction} ${flow.direction === '➔' ? flow.to : flow.from}: ${flow.type}</li>`;
+            } else if (flow.to) {
+                 descriptionHtml += `<li>${flow.direction} ${flow.to}: ${flow.type}</li>`;
+            } else {
+                 descriptionHtml += `<li>${flow.from} ${flow.direction}: ${flow.type}</li>`;
+            }
+        });
+        descriptionHtml += `</ul>`;
+        document.getElementById('popup-description').innerHTML = descriptionHtml;
+        document.getElementById('sector-detail-popup').classList.remove('hidden');
+    }
+
+    function closeSectorDetail() {
+        document.getElementById('sector-detail-popup').classList.add('hidden');
+    }
+
+    const dataMappingData = [
+        { sector: "Household Sector", flow: "Income", variable: "Gross Household Disposable Income; Compensation of Employees", details: "Total income available to households after taxes/transfers (GHDI), and income from labor (CoE). Source: ABS National Accounts." },
+        { sector: "Household Sector", flow: "Expenditure", variable: "Household Final Consumption Expenditure (HFCE)", details: "Spending by households on goods and services. Source: ABS National Accounts." },
+        { sector: "Household Sector", flow: "Savings (S)", variable: "Household Net Saving; Gross Saving (Households)", details: "Income not spent on consumption. Source: ABS National Accounts." },
+        { sector: "Firms Sector", flow: "Output", variable: "Gross Domestic Product (GDP); Gross Value Added (GVA) by Industry", details: "Total value of goods and services produced. Source: ABS National Accounts." },
+        { sector: "Firms Sector", flow: "Investment (I)", variable: "Gross Fixed Capital Formation (GFCF) - Private", details: "Private sector spending on capital goods (dwellings, machinery). Source: ABS National Accounts." },
+        { sector: "Government Sector", flow: "Taxation (T)", variable: "Taxes on Income; Taxes on Production and Imports", details: "Various taxes collected by government. Source: ABS Government Finance Statistics." },
+        { sector: "Government Sector", flow: "Government Expenditure (G)", variable: "Government Final Consumption Expenditure (GFCE); GFCF - Public", details: "Government spending on public services and investment. Source: ABS National Accounts; ABS GFS." },
+        { sector: "Financial Sector", flow: "Facilitates S & I", variable: "Interest Rates; Credit Aggregates", details: "Channels savings to investment; influences decisions. Source: RBA Statistical Tables." },
+        { sector: "Overseas Sector", flow: "Exports (X)", variable: "Exports of Goods and Services", details: "Value of domestic goods/services sold abroad. Source: ABS International Trade Statistics." },
+        { sector: "Overseas Sector", flow: "Imports (M)", variable: "Imports of Goods and Services", details: "Value of foreign goods/services bought domestically. Source: ABS International Trade Statistics." }
+    ];
+
+    const dataMappingTableBody = document.getElementById('dataMappingTableBody');
+    dataMappingData.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.classList.add('table-expandable-row');
+        tr.innerHTML = `
+            <td class="px-4 py-2 whitespace-nowrap text-sm text-slate-700">${item.sector}</td>
+            <td class="px-4 py-2 whitespace-nowrap text-sm text-slate-700">${item.flow}</td>
+            <td class="px-4 py-2 text-sm text-slate-700">${item.variable}</td>
+        `;
+        const detailsTr = document.createElement('tr');
+        detailsTr.classList.add('hidden', 'expanded-content');
+        detailsTr.innerHTML = `<td colspan="3" class="px-4 py-3 text-sm text-slate-600 bg-slate-100">${item.details}</td>`;
+        
+        tr.addEventListener('click', () => {
+            detailsTr.classList.toggle('hidden');
+            tr.classList.toggle('bg-sky-50');
+        });
+        dataMappingTableBody.appendChild(tr);
+        dataMappingTableBody.appendChild(detailsTr);
+    });
+
+    const rbaTablesData = [
+        { id: "D1", title: "Growth in Selected Financial Aggregates", relevance: "Savings (S), Investment (I) proxies, Financial Flows", csv: ".../csv/d1-data.csv", xlsx: ".../xls/d01hist.xlsx" },
+        { id: "D2", title: "Lending and Credit Aggregates", relevance: "Investment (I) financing, Financial Flows", csv: ".../csv/d2-data.csv", xlsx: ".../xls/d02hist.xlsx" },
+        { id: "F1.1", title: "Interest Rates and Yields – Money Market – Monthly", relevance: "Cost of borrowing/return on savings (influences S, I)", csv: ".../csv/f1.1-data.csv", xlsx: ".../xls/f01hist.xlsx" },
+        { id: "F5", title: "Indicator Lending Rates", relevance: "Cost of borrowing for firms/households (influences I, C)", csv: ".../csv/f5-data.csv", xlsx: ".../xls/f05hist.xlsx" },
+        { id: "F11.1", title: "Exchange Rates – Daily - Current", relevance: "Valuation of X, M; International competitiveness", csv: ".../csv/f11.1-data.csv", xlsx: ".../xls-hist/2023-current.xls (example)" }
+    ];
+    const rbaDataTable = document.getElementById('rbaDataTable');
+    rbaTablesData.forEach(table => {
+        const div = document.createElement('div');
+        div.classList.add('p-3', 'border', 'border-teal-200', 'rounded-md', 'bg-teal-50');
+        div.innerHTML = `
+            <h5 class="font-semibold text-teal-700">${table.id}: ${table.title}</h5>
+            <p class="text-sm text-slate-600 mt-1"><strong>Relevance:</strong> ${table.relevance}</p>
+            <p class="text-sm text-slate-600 mt-1"><strong>Example Links (Conceptual):</strong> 
+                <code class="text-xs bg-slate-200 p-0.5 rounded">CSV: ${table.csv}</code>, 
+                <code class="text-xs bg-slate-200 p-0.5 rounded">XLSX: ${table.xlsx}</code>
+            </p>
+            <p class="text-xs text-slate-500 mt-1">Note: Verify actual links on RBA website.</p>
+        `;
+        rbaDataTable.appendChild(div);
+    });
+
+    const acquisitionStrategyData = [
+        { component: "Household Consumption (C)", source: "ABS Indicator API (GDPE_H) for headline; ABS Data API (Beta) for detailed (e.g., Cat. 5206.0)." },
+        { component: "Private Investment (I)", source: "ABS Indicator API (GDPE_H) for headline; ABS Data API (Beta) for detailed (e.g., Cat. 5206.0, 5625.0). RBA Tables (F-series) for interest rates." },
+        { component: "Government Spending (G)", source: "ABS Indicator API (GDPE_H) for headline; ABS GFS XLSX (Cat. 5512.0) for detailed. Check Data API." },
+        { component: "Exports (X) & Imports (M)", source: "ABS Indicator API (GDPE_H, ITGS_H) for headline; ABS Data API (Beta) for detailed (e.g., Cat. 5368.0). RBA Tables (F-series) for exchange rates." },
+        { component: "Household Income (Y)", source: "ABS Data API (Beta) for detailed components (e.g., Cat. 5206.0, 5204.0)." },
+        { component: "Household Savings (S)", source: "ABS Data API (Beta) (e.g., Cat. 5206.0, 5204.0). RBA Tables (D-series) for financial aggregates." },
+        { component: "Taxation (T)", source: "ABS GFS XLSX (Cat. 5512.0) for detailed. Check Data API." }
+    ];
+    const acquisitionStrategyTable = document.getElementById('acquisitionStrategyTable');
+    acquisitionStrategyData.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('p-3', 'border', 'border-sky-200', 'rounded-md', 'bg-sky-50');
+        div.innerHTML = `
+            <h5 class="font-semibold text-sky-700">${item.component}</h5>
+            <p class="text-sm text-slate-600 mt-1"><strong>Recommended Source(s):</strong> ${item.source}</p>
+        `;
+        acquisitionStrategyTable.appendChild(div);
+    });
+
+    const gdpChartCtx = document.getElementById('gdpComponentsChart').getContext('2d');
+    const gdpComponentsChart = new Chart(gdpChartCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Household Cons. (C)', 'Private Invest. (I)', 'Gov. Spending (G)', 'Exports (X)', 'Imports (M)'],
+            datasets: [{
+                label: 'Illustrative GDP Components (AUD Billion)',
+                data: [300, 150, 120, 200, 180], // Example data
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.6)', // blue
+                    'rgba(255, 159, 64, 0.6)', // orange
+                    'rgba(75, 192, 192, 0.6)', // green
+                    'rgba(153, 102, 255, 0.6)', // purple
+                    'rgba(255, 99, 132, 0.6)'  // red
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 159, 64, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Value (AUD Billion)' }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        autoSkip: false, 
+                        callback: function(value, index, values) {
+                            const label = this.getLabelForValue(value);
+                            if (label.length > 16) { // Wrap if longer than 16 chars
+                                return label.match(/.{1,16}/g); // Split into lines of 16 chars
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Conceptual GDP Components Breakdown' },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits:0, maximumFractionDigits:0 }).format(context.parsed.y) + ' Billion';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Initialize first tab
+    if (mainTabs.length > 0) {
+       showTab('framework', mainTabs[0]);
+    }
+    if (sourcesSubTabs && sourcesSubTabs.length > 0) {
+        showSubTab('rbaData', 'sourcesSubTabsContainer', sourcesSubTabs[0]);
+    }
+
+</script>
+</body>
+</html>

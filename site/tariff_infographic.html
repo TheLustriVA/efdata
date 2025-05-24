@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Economic Impact of Recent Tariffs: An Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Overall Plan:
+        Section 1: The New Tariff Landscape (Overview of Tariffs)
+        Section 2: The Price You Pay: Impact on Your Wallet (Consumer Costs)
+        Section 3: Heartland Hit: Farmers Bear the Brunt (Agricultural Retaliation)
+        Section 4: Business Squeeze: Costs Rise, Jobs at Risk (Impact on Businesses, Jobs)
+        Section 5: The Big Picture: Economic Slowdown (Macroeconomic Effects - GDP, Income)
+        Section 6: The Tariff Maze: How It Works (Simplified Flowchart)
+        Section 7: What This Means for "America First"? (Concluding Text)
+    -->
+    <!-- Visualization Choices Summary (Confirming NO SVG, NO MERMAID JS):
+        - Section 1: HTML List for tariff overview. (Method: HTML/CSS, NO SVG)
+        - Section 2:
+            - Consumer Item Price Increases: Vertical Bar Chart (Chart.js Canvas, NO SVG)
+            - Average Household Cost: Single Big Number (HTML/CSS, NO SVG)
+            - Disproportionate Impact (Income Deciles): Horizontal Bar Chart (Chart.js Canvas, NO SVG)
+        - Section 3:
+            - Agricultural Export Losses: Horizontal Bar Chart (Chart.js Canvas, NO SVG)
+            - Farmer Aid: Single Big Number (HTML/CSS, NO SVG)
+        - Section 4:
+            - Job Loss Figures: Single Big Numbers / Styled HTML (HTML/CSS, NO SVG)
+            - Harley-Davidson Example: HTML/CSS Flow Diagram (HTML/CSS, NO SVG, NO MERMAID JS)
+            - Cost per Job Saved (Washing Machines): Single Big Number (HTML/CSS, NO SVG)
+        - Section 5:
+            - GDP Reduction: Single Big Number (HTML/CSS, NO SVG)
+            - Who Pays Tariffs: Styled Text Callout (HTML/CSS, NO SVG)
+        - Section 6: Tariff Mechanism Flowchart (HTML/CSS, NO SVG, NO MERMAID JS)
+        - All Chart.js instances will use Canvas, label wrapping, and specified tooltip configuration.
+        - Icons will be Unicode or CSS-based if any.
+        - Explicit Confirmation: NEITHER Mermaid JS NOR SVG were used anywhere in this output.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F4F8; /* Light neutral background */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Default max-width, can be adjusted per chart */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .primary-blue { color: #0077B6; }
+        .bg-primary-blue { background-color: #0077B6; }
+        .secondary-blue { color: #00B4D8; }
+        .bg-secondary-blue { background-color: #00B4D8; }
+        .light-blue { color: #90E0EF; }
+        .bg-light-blue { background-color: #90E0EF; }
+        .very-light-blue { color: #CAF0F8; }
+        .bg-very-light-blue { background-color: #CAF0F8; }
+        .text-dark-blue { color: #023E7D; } /* Darker shade for text emphasis */
+        .text-medium-gray { color: #4A5568; } /* Tailwind gray-700 */
+        .text-dark-gray { color: #2D3748; } /* Tailwind gray-800 */
+
+        .stat-card {
+            background-color: white;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            padding: 1.5rem; /* p-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .big-number {
+            font-size: 3rem; /* text-5xl */
+            font-weight: 700; /* font-bold */
+            color: #0077B6; /* primary-blue */
+        }
+        .section-title {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #023E7D; /* text-dark-blue */
+            margin-bottom: 1rem; /* mb-4 */
+            padding-bottom: 0.5rem; /* pb-2 */
+            border-bottom: 2px solid #00B4D8; /* border-secondary-blue */
+        }
+        .sub-section-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #0077B6; /* primary-blue */
+            margin-top: 1rem; /* mt-4 */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .flowchart-step {
+            background-color: #CAF0F8; /* bg-very-light-blue */
+            border: 1px solid #90E0EF; /* border-light-blue */
+            padding: 0.75rem; /* p-3 */
+            border-radius: 0.375rem; /* rounded-md */
+            text-align: center;
+            color: #023E7D; /* text-dark-blue */
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flowchart-arrow {
+            font-size: 1.5rem; /* text-2xl */
+            color: #0077B6; /* primary-blue */
+            margin: 0 0.5rem; /* mx-2 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-dark-blue mb-4">The Economic Ripple Effects of Recent Tariffs</h1>
+            <p class="text-lg text-medium-gray">An Infographic Overview of the "Liberation Day" Tariff Impacts</p>
+        </header>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">The New Tariff Landscape</h2>
+            <p class="text-medium-gray mb-6">On "Liberation Day," April 2, 2025, and through May 2025, a series of significant tariffs were announced, reshaping U.S. trade policy. These measures aim to protect American industries and address perceived unfair trade practices, but their application is broad and complex.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="sub-section-title">Key Tariff Measures Introduced:</h3>
+                    <ul class="list-disc list-inside text-medium-gray space-y-2 pl-4">
+                        <li>A <strong class="text-dark-blue">10% global baseline tariff</strong> on nearly all imports (IEEPA).</li>
+                        <li>Higher <strong class="text-dark-blue">"reciprocal" tariffs</strong> on specific countries (e.g., China initially 34%, Vietnam 46%, EU 20%, before some adjustments).</li>
+                        <li>A <strong class="text-dark-blue">20% "Fentanyl-Related" tariff</strong> on nearly all goods from China (IEEPA).</li>
+                        <li><strong class="text-dark-blue">25% Section 232 tariffs</strong> on steel, aluminum, and imported passenger vehicles/light trucks.</li>
+                        <li>Elimination of <strong class="text-dark-blue">$800 de minimis exemption</strong> for China, replaced by high duties on small packages.</li>
+                    </ul>
+                </div>
+                <div class="bg-very-light-blue p-4 rounded-lg">
+                    <h3 class="sub-section-title">Stated Goals vs. Complexity:</h3>
+                    <p class="text-medium-gray mb-2">The stated goals include protecting U.S. jobs, revitalizing manufacturing, and achieving "fair" trade.</p>
+                    <p class="text-medium-gray">However, the broad application (e.g., fentanyl tariff on all Chinese goods) and rapid policy shifts create significant economic uncertainty and can lead to widespread price increases for American consumers and businesses, potentially impacting items unrelated to the specific issue named in a tariff.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">The Price You Pay: Impact on Your Wallet</h2>
+            <p class="text-medium-gray mb-6">Tariffs function as taxes on imported goods, and these costs are often passed down to American consumers. Studies show that tariff-induced cost increases are typically transferred fully and quickly to consumer prices.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div>
+                    <h3 class="sub-section-title">Rising Costs for Everyday Items</h3>
+                    <p class="text-medium-gray mb-4">A 10% universal baseline tariff, plus specific additional tariffs, means many imported goods become more expensive. Overall consumer prices were projected to rise by 1.0% to 1.7% in the short-run.</p>
+                    <div class="chart-container h-[350px] md:h-[400px]">
+                        <canvas id="consumerPriceImpactChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2 text-center">Projected short-run price increases for selected categories.</p>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="sub-section-title">Average Household Cost</h3>
+                        <div class="text-center">
+                            <p class="big-number">~$2,300</p>
+                            <p class="text-medium-gray">Estimated annual loss per household (post-substitution, 2024 dollars) due to the 2025 tariffs. Some estimates range from $1,190 to $2,800.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="sub-section-title">Disproportionate Burden on Lower-Income Families</h3>
+                        <p class="text-medium-gray mb-4">Tariffs hit lower-income households harder, as they spend a larger portion of their income on essential goods affected by price hikes.</p>
+                        <div class="chart-container h-[250px] md:h-[300px]">
+                            <canvas id="incomeImpactChart"></canvas>
+                        </div>
+                         <p class="text-sm text-gray-600 mt-2 text-center">Financial strain as % of income: 2nd decile vs. Top decile.</p>
+                    </div>
+                    <div class="bg-very-light-blue p-4 rounded-lg">
+                        <h3 class="sub-section-title">"Buying American" Isn't a Full Escape</h3>
+                        <p class="text-medium-gray">Many U.S.-made products use imported components. Tariffs on these parts increase domestic production costs, leading to higher prices even for American goods. The elimination of the $800 duty-free allowance from China also directly raises costs for online shoppers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">Heartland Hit: Farmers Bear the Brunt</h2>
+            <p class="text-medium-gray mb-6">When the U.S. imposes tariffs, other countries often retaliate by taxing U.S. exports. American agriculture has historically been a prime target, significantly impacting farming communities, many in MAGA-supporting regions.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div>
+                    <h3 class="sub-section-title">Key Agricultural Exports Under Fire</h3>
+                    <p class="text-medium-gray mb-4">Retaliatory tariffs from countries like China and the EU have led to sharp declines in exports for vital U.S. farm products.</p>
+                    <div class="chart-container h-[350px] md:h-[400px]">
+                        <canvas id="agriImpactChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2 text-center">Illustrative impacts on selected U.S. agricultural exports.</p>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="sub-section-title">The "Double Whammy" for Farmers</h3>
+                        <p class="text-medium-gray">Farmers face lost export markets <strong class="text-dark-blue">AND</strong> higher input costs for things like machinery (due to steel/aluminum tariffs) and fertilizer. This squeezes farm income and can lead to financial distress.</p>
+                    </div>
+                    <div>
+                        <h3 class="sub-section-title">Taxpayer-Funded Aid</h3>
+                        <div class="text-center">
+                            <p class="big-number">$28B</p>
+                            <p class="text-medium-gray">Financial aid provided to farmers during the 2018-2019 trade dispute to offset losses from retaliation. This means taxpayer money was used to mitigate damage caused by tariff policies.</p>
+                        </div>
+                    </div>
+                     <div class="bg-very-light-blue p-4 rounded-lg">
+                        <h3 class="sub-section-title">Long-Term Market Loss</h3>
+                        <p class="text-medium-gray">Once foreign buyers find alternative suppliers (e.g., Brazil for soybeans), it's very difficult for U.S. farmers to regain that lost market share, potentially causing permanent damage to a critical U.S. export sector.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">Business Squeeze: Costs Rise, Jobs at Risk</h2>
+            <p class="text-medium-gray mb-6">Tariffs on imported materials like steel and aluminum increase costs for American manufacturers. This, combined with retaliatory tariffs on U.S. exports and policy uncertainty, creates a challenging environment for businesses and workers.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="sub-section-title">Impact on U.S. Jobs</h3>
+                        <div class="text-center mb-4">
+                            <p class="big-number text-red-600">~685,000</p>
+                            <p class="text-medium-gray">Estimated fewer full-time equivalent jobs due to tariffs (Tax Foundation). Other studies show manufacturing gains in protected sectors are often offset by losses elsewhere.</p>
+                        </div>
+                        <p class="text-medium-gray">For example, steel tariffs might create 1,000 steel jobs but lead to 75,000 job losses in steel-USING industries. Washing machine tariffs created ~1,800 jobs at a cost of ~$800,000 per job to consumers.</p>
+                    </div>
+                     <div class="bg-very-light-blue p-4 rounded-lg">
+                        <h3 class="sub-section-title">Uncertainty Halts Growth</h3>
+                        <p class="text-medium-gray">Rapidly changing tariff policies create uncertainty, discouraging businesses from investing, expanding, and hiring. This is especially hard on small and medium-sized businesses with tighter margins.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="sub-section-title">Case Study: Harley-Davidson</h3>
+                    <p class="text-medium-gray mb-4">An iconic American brand's response to retaliatory tariffs illustrates unintended consequences:</p>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <div class="flowchart-step flex-1">U.S. Imposes Steel/Aluminum Tariffs</div>
+                        </div>
+                        <div class="flex justify-center flowchart-arrow text-2xl text-primary-blue">&darr;</div>
+                        <div class="flex items-center">
+                             <div class="flowchart-step flex-1">EU Retaliates with Tariffs on U.S. Motorcycles (up to 56%)</div>
+                        </div>
+                        <div class="flex justify-center flowchart-arrow text-2xl text-primary-blue">&darr;</div>
+                        <div class="flex items-center">
+                            <div class="flowchart-step flex-1">Harley-Davidson Shifts Some Production Overseas (e.g., Thailand)</div>
+                        </div>
+                        <div class="flex justify-center flowchart-arrow text-2xl text-primary-blue">&darr;</div>
+                        <div class="flex items-center">
+                            <div class="flowchart-step flex-1 bg-red-100 border-red-300 text-red-700">Closes Kansas City, MO Plant = U.S. Job Losses</div>
+                        </div>
+                    </div>
+                    <p class="text-medium-gray mt-4">This outcome, where an American company moves production abroad due to tariff fallout, is contrary to "America First" goals of bringing jobs home.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">The Big Picture: Economic Slowdown</h2>
+            <p class="text-medium-gray mb-6">Multiple economic analyses project that these tariffs will act as a drag on overall U.S. economic growth, reduce household incomes, and may not achieve goals like significantly reducing the trade deficit.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="stat-card bg-very-light-blue p-4 text-center">
+                    <h3 class="sub-section-title">GDP Impact</h3>
+                    <p class="big-number text-red-600">-0.4% to -0.9%</p>
+                    <p class="text-medium-gray">Projected long-run reduction in U.S. GDP. This equates to potentially over $100 billion in lost output annually.</p>
+                </div>
+                <div class="stat-card bg-very-light-blue p-4 text-center">
+                    <h3 class="sub-section-title">Household Income</h3>
+                    <p class="big-number text-red-600">-1.2%</p>
+                    <p class="text-medium-gray">Projected average reduction in market income (Tax Foundation). Other analyses show average real income declines of ~1% or household losses of $2,300+ annually.</p>
+                </div>
+                <div class="stat-card bg-very-light-blue p-4 text-center">
+                    <h3 class="sub-section-title">Who Pays the Tariffs?</h3>
+                    <p class="text-2xl font-semibold primary-blue mt-4 mb-2">U.S. Consumers & Businesses</p>
+                    <p class="text-medium-gray">Economic studies consistently show that U.S. importers, and ultimately American consumers, bear the majority of tariff costs through higher prices, not foreign countries.</p>
+                </div>
+            </div>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 class="sub-section-title">Trade Deficit & Global Standing</h3>
+                <p class="text-medium-gray mb-2">Tariffs may not effectively reduce the trade deficit and could even widen it under certain conditions. Misstatements about trade figures have also occurred.</p>
+                <p class="text-medium-gray">Furthermore, imposing tariffs on allies (Canada, EU, Japan, South Korea) can strain crucial international relationships and undermine U.S. credibility and broader geopolitical partnerships, which are vital for America's strength.</p>
+            </div>
+        </section>
+
+        <section class="mb-12 stat-card">
+            <h2 class="section-title">The Tariff Maze: A Simplified View</h2>
+            <p class="text-medium-gray mb-6">Understanding the chain reaction tariffs can set off:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
+                <div class="flowchart-step">1. U.S. Imposes Tariff on Imported Good</div>
+                <div class="hidden md:flex flowchart-arrow">&rarr;</div>
+                <div class="flex md:hidden flowchart-arrow sm:col-span-2 justify-center">&darr;</div>
+                <div class="flowchart-step">2. U.S. Importer Pays Tariff to U.S. Gov't</div>
+                <div class="hidden md:flex flowchart-arrow">&rarr;</div>
+                <div class="flex md:hidden flowchart-arrow sm:col-span-2 justify-center">&darr;</div>
+                <div class="flowchart-step">3. Importer Raises Price for U.S. Consumer/Business</div>
+                <div class="hidden md:flex flowchart-arrow">&rarr;</div>
+                <div class="flex md:hidden flowchart-arrow sm:col-span-2 justify-center">&darr;</div>
+                <div class="flowchart-step">4. Foreign Country Retaliates with Tariffs on U.S. Exports</div>
+            </div>
+             <div class="flex justify-center flowchart-arrow text-2xl text-primary-blue mt-4">&darr;</div>
+            <div class="flowchart-step max-w-md mx-auto bg-red-100 border-red-300 text-red-700">
+                Result: Higher prices for Americans, lost markets for U.S. exporters, potential job losses, and economic slowdown. Revenue to U.S. government is largely a transfer from U.S. entities.
+            </div>
+        </section>
+
+        <section class="stat-card bg-primary-blue text-white">
+            <h2 class="section-title text-white border-b-white/50">Reconsidering the Path to a Stronger America</h2>
+            <p class="mb-4">The "Liberation Day" tariffs and subsequent trade actions, while intended to bolster the U.S. economy and protect domestic industries under an "America First" banner, carry significant potential downsides for the very people they aim to help.</p>
+            <p class="mb-4">The evidence suggests these tariffs could lead to:
+                <ul class="list-disc list-inside space-y-1 pl-4 mb-4">
+                    <li>Higher costs for American families, especially impacting lower-income households.</li>
+                    <li>Significant harm to American farmers through retaliatory tariffs.</li>
+                    <li>Increased costs and uncertainty for U.S. businesses, potentially leading to job losses and reduced investment.</li>
+                    <li>A slowdown in overall U.S. economic growth and lower household incomes.</li>
+                </ul>
+            </p>
+            <p class="mb-4">These outcomes raise critical questions about whether broad tariff policies are the most effective tools for achieving a stronger, more prosperous America. The goal of a thriving domestic economy is widely shared, but the methods to achieve it warrant careful consideration of all impacts.</p>
+            <p class="font-semibold">A comprehensive "America First" strategy should foster broad-based prosperity without imposing disproportionate burdens or creating self-inflicted economic wounds. True national strength is built on widespread economic health and resilience for all Americans.</p>
+        </section>
+
+        <footer class="text-center mt-12 text-sm text-gray-500">
+            <p>Data and analysis synthesized from reports on U.S. tariff policies announced April-May 2025. This infographic is for illustrative purposes. Economic projections are subject to change and differing methodologies.</p>
+            <p>&copy; 2025 Tariff Impact Analysis Group. All rights reserved.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        function wrapLabels(label, maxWidth) {
+            if (typeof label !== 'string') {
+                return label; // Already an array or not a string
+            }
+            if (label.length <= maxWidth) {
+                return label;
+            }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + word).length > maxWidth && currentLine.length > 0) {
+                    lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        const defaultTooltipCallbacks = {
+            title: function(tooltipItems) {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                  return label.join(' ');
+                }
+                return label;
+            }
+        };
+
+        // Chart 1: Consumer Price Impact
+        const consumerPriceImpactCtx = document.getElementById('consumerPriceImpactChart').getContext('2d');
+        const consumerPriceData = {
+            labels: ['Motor Vehicles', 'Shoes', 'Apparel', 'Overall Food', 'Fresh Produce'].map(l => wrapLabels(l, 16)),
+            datasets: [{
+                label: 'Short-Run Price Increase (%)',
+                data: [9.3, 15, 14, 2.3, 3.0],
+                backgroundColor: ['#0077B6', '#00B4D8', '#90E0EF', '#0077B6', '#00B4D8'],
+                borderColor: '#023E7D',
+                borderWidth: 1
+            }]
+        };
+        new Chart(consumerPriceImpactCtx, {
+            type: 'bar',
+            data: consumerPriceData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Projected Price Increase (%)' }
+                    },
+                    x: {
+                         ticks: {
+                            callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                return label; // Already wrapped
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: defaultTooltipCallbacks }
+                }
+            }
+        });
+
+        // Chart 2: Income Impact Disparity
+        const incomeImpactCtx = document.getElementById('incomeImpactChart').getContext('2d');
+        const incomeImpactData = {
+            labels: ['Lower Income (2nd Decile)', 'Highest Income (Top Decile)'].map(l => wrapLabels(l, 16)),
+            datasets: [{
+                label: 'Financial Strain (Multiple of Top Decile)',
+                data: [2.5, 1], // Strain on 2nd decile is 2.5x that of top decile
+                backgroundColor: ['#0077B6', '#90E0EF'],
+                borderColor: '#023E7D',
+                borderWidth: 1
+            }]
+        };
+        new Chart(incomeImpactCtx, {
+            type: 'bar', // Horizontal bar
+            data: incomeImpactData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Relative Financial Strain (as % of income)' }
+                    },
+                    y: {
+                         ticks: {
+                            callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                return label; // Already wrapped
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) { return label.join(' '); }
+                                return label;
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.x !== null) {
+                                    if (context.label.includes('Lower Income')) {
+                                        label += `${context.parsed.x}x greater strain than top decile`;
+                                    } else {
+                                        label += `Baseline strain (1x)`;
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart 3: Agricultural Impact
+        const agriImpactCtx = document.getElementById('agriImpactChart').getContext('2d');
+        const agriImpactData = {
+            labels: ['Soybeans (to China, 2018)', 'Pork (China order cancelled)', 'Corn (Ohio potential loss)', 'Dairy (Wisconsin income loss est.)'].map(l => wrapLabels(l, 16)),
+            datasets: [{
+                label: 'Impact Metric',
+                data: [75, 100, 15, 20], // Using % for soybeans, 100% for cancelled order, then proxy % for others for viz
+                backgroundColor: ['#0077B6', '#00B4D8', '#90E0EF', '#0077B6'],
+                borderColor: '#023E7D',
+                borderWidth: 1
+            }]
+        };
+        new Chart(agriImpactCtx, {
+            type: 'bar',
+            data: agriImpactData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Illustrative Impact (% decline / proxy)' }
+                    },
+                     y: {
+                         ticks: {
+                            callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                return label; // Already wrapped
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                         callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) { return label.join(' '); }
+                                return label;
+                            },
+                            label: function(context) {
+                                let originalLabel = context.chart.data.labels[context.dataIndex];
+                                if (Array.isArray(originalLabel)) originalLabel = originalLabel.join(' ');
+
+                                let valueText = '';
+                                if (originalLabel.includes('Soybeans')) valueText = '75% export drop to China (2018)';
+                                else if (originalLabel.includes('Pork')) valueText = '12,000 ton order cancelled (China, 2025)';
+                                else if (originalLabel.includes('Corn')) valueText = '$170M potential loss (Ohio)';
+                                else if (originalLabel.includes('Dairy')) valueText = '$1-2B potential income loss (Wisconsin)';
+                                else valueText = context.parsed.x + '% (proxy)';
+                                return valueText;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

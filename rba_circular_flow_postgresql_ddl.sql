@@ -17,10 +17,10 @@
 
 -- Drop existing schemas if they exist (for development)
 -- WARNING: Uncomment only for development environments
--- DROP SCHEMA IF EXISTS rba_staging CASCADE;
--- DROP SCHEMA IF EXISTS rba_dimensions CASCADE;
--- DROP SCHEMA IF EXISTS rba_facts CASCADE;
--- DROP SCHEMA IF EXISTS rba_analytics CASCADE;
+DROP SCHEMA IF EXISTS rba_staging CASCADE;
+DROP SCHEMA IF EXISTS rba_dimensions CASCADE;
+DROP SCHEMA IF EXISTS rba_facts CASCADE;
+DROP SCHEMA IF EXISTS rba_analytics CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS rba_staging;
 CREATE SCHEMA IF NOT EXISTS rba_dimensions;
@@ -191,12 +191,12 @@ CREATE OR REPLACE FUNCTION rba_dimensions.populate_time_dimension(
     end_date DATE
 ) RETURNS INTEGER AS $$
 DECLARE
-    current_date DATE;
+    loop_date DATE;
     record_count INTEGER := 0;
 BEGIN
-    current_date := start_date;
+    loop_date := start_date;
     
-    WHILE current_date <= end_date LOOP
+    WHILE loop_date <= end_date LOOP
         INSERT INTO rba_dimensions.dim_time (
             date_value,
             year,
@@ -209,23 +209,23 @@ BEGIN
             quarter_label,
             fiscal_year
         ) VALUES (
-            current_date,
-            EXTRACT(YEAR FROM current_date),
-            EXTRACT(QUARTER FROM current_date),
-            EXTRACT(MONTH FROM current_date),
-            EXTRACT(DOY FROM current_date),
-            current_date = (DATE_TRUNC('quarter', current_date) + INTERVAL '3 months - 1 day')::DATE,
-            current_date = (DATE_TRUNC('year', current_date) + INTERVAL '12 months - 1 day')::DATE,
-            current_date = (DATE_TRUNC('month', current_date) + INTERVAL '1 month - 1 day')::DATE,
-            EXTRACT(YEAR FROM current_date)::TEXT || 'Q' || EXTRACT(QUARTER FROM current_date)::TEXT,
+            loop_date,
+            EXTRACT(YEAR FROM loop_date),
+            EXTRACT(QUARTER FROM loop_date),
+            EXTRACT(MONTH FROM loop_date),
+            EXTRACT(DOY FROM loop_date),
+            loop_date = (DATE_TRUNC('quarter', loop_date) + INTERVAL '3 months - 1 day')::DATE,
+            loop_date = (DATE_TRUNC('year', loop_date) + INTERVAL '12 months - 1 day')::DATE,
+            loop_date = (DATE_TRUNC('month', loop_date) + INTERVAL '1 month - 1 day')::DATE,
+            EXTRACT(YEAR FROM loop_date)::TEXT || 'Q' || EXTRACT(QUARTER FROM loop_date)::TEXT,
             CASE 
-                WHEN EXTRACT(MONTH FROM current_date) >= 7 
-                THEN EXTRACT(YEAR FROM current_date) + 1
-                ELSE EXTRACT(YEAR FROM current_date)
+                WHEN EXTRACT(MONTH FROM loop_date) >= 7 
+                THEN EXTRACT(YEAR FROM loop_date) + 1
+                ELSE EXTRACT(YEAR FROM loop_date)
             END
         ) ON CONFLICT (date_value) DO NOTHING;
         
-        current_date := current_date + INTERVAL '1 day';
+        loop_date := loop_date + INTERVAL '1 day';
         record_count := record_count + 1;
     END LOOP;
     

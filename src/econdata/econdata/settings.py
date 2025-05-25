@@ -104,9 +104,9 @@ XR_BASE_CURRENCY = 'AUD'  # Or any other supported ISO code
 # Database settings
 DB_HOST = os.getenv("PSQL_HOST")
 DB_PORT = os.getenv("PSQL_PORT")
-DB_NAME = os.getenv("PSQL_DB")  # Should be "econdata"
-DB_USER = os.getenv("PSQL_USER")  # Should be "econdata"
-DB_PASSWORD = os.getenv("PSQL_PW")  # Your password from .env
+DB_NAME = os.getenv("PSQL_DB")
+DB_USER = os.getenv("PSQL_USER")
+DB_PASSWORD = os.getenv("PSQL_PW")
 
 # Pipeline configuration
 ITEM_PIPELINES = {

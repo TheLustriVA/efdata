@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUD Exchange Rate World Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #map {
+            height: 70vh; /* Responsive height */
+            width: 100%;
+            max-width: 1200px; /* Max width for larger screens */
+            border-radius: 0.5rem; /* Rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            margin-top: 1rem;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.375rem; /* Rounded corners for popups */
+        }
+        .leaflet-popup-content {
+            font-size: 0.875rem; /* 14px */
+            line-height: 1.25rem; /* 20px */
+        }
+        .legend {
+            padding: 0.75rem; /* 12px */
+            background: white;
+            background: rgba(255,255,255,0.9); /* Slightly transparent white */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border-radius: 0.375rem; /* Rounded corners */
+            line-height: 1.5rem; /* 24px */
+            font-size: 0.875rem; /* 14px */
+        }
+        .legend i {
+            width: 1.125rem; /* 18px */
+            height: 1.125rem; /* 18px */
+            float: left;
+            margin-right: 0.5rem; /* 8px */
+            opacity: 0.8;
+            border-radius: 0.125rem; /* Slightly rounded color boxes */
+        }
+        .info-box {
+            padding: 1rem; /* 16px */
+            background-color: white;
+            border-radius: 0.5rem; /* Rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        /* Custom message box for alerts */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 10000; /* Ensure it's on top */
+        }
+        .message-box-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px; /* Fixed width for the message box */
+        }
+        .message-box-content h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .message-box-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        .message-box-button {
+            background-color: #3b82f6; /* Tailwind blue-500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .message-box-button:hover {
+            background-color: #2563eb; /* Tailwind blue-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+
+    <div class="w-full max-w-4xl mx-auto">
+        <header class="text-center py-6">
+            <h1 class="text-3xl font-bold text-gray-800">AUD Exchange Rate Viewer</h1>
+            <p class="text-md text-gray-600 mt-2">Interactive map showing AUD exchange rates against various currencies.</p>
+            <p class="text-sm text-gray-500 mt-1">(Rates are for demonstration purposes: Foreign Currency Units per 1 AUD)</p>
+        </header>
+
+        <div id="map"></div>
+
+        <div id="customMessageBox" class="message-box-overlay">
+            <div class="message-box-content">
+                <h3 id="messageBoxTitle">Notification</h3>
+                <p id="messageBoxText">This is a message.</p>
+                <button id="messageBoxButton" class="message-box-button">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <script>
+        // --- Custom Message Box Logic ---
+        const messageBoxOverlay = document.getElementById('customMessageBox');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxButton = document.getElementById('messageBoxButton');
+
+        function showMessage(title, text) {
+            messageBoxTitle.textContent = title;
+            messageBoxText.textContent = text;
+            messageBoxOverlay.style.display = 'flex';
+        }
+
+        messageBoxButton.addEventListener('click', () => {
+            messageBoxOverlay.style.display = 'none';
+        });
+        // --- End Custom Message Box Logic ---
+
+        // Initialize the map and set its view to a global perspective
+        const map = L.map('map').setView([20, 0], 2); // Centered more globally, zoom level 2
+
+        // Add a tile layer to the map (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Placeholder exchange rate data (Foreign Currency Units per 1 AUD)
+        // Higher value means AUD is stronger
+        // These are ISO 3166-1 alpha-3 country codes.
+        // You would fetch this data from your Python backend.
+        const exchangeRatesAUD = {
+            "USA": 0.66,  // United States Dollar
+            "JPN": 99.50, // Japanese Yen
+            "GBR": 0.52,  // British Pound
+            "DEU": 0.61,  // Euro (Germany as proxy)
+            "FRA": 0.61,  // Euro (France as proxy)
+            "ITA": 0.61,  // Euro (Italy as proxy)
+            "ESP": 0.61,  // Euro (Spain as proxy)
+            "CAN": 0.90,  // Canadian Dollar
+            "AUS": 1.00,  // Australian Dollar (Reference)
+            "NZL": 1.08,  // New Zealand Dollar
+            "CHN": 4.78,  // Chinese Yuan Renminbi
+            "IND": 55.20, // Indian Rupee
+            "BRA": 3.35,  // Brazilian Real
+            "ZAF": 12.25, // South African Rand
+            "RUS": 60.00, // Russian Ruble
+            "MEX": 11.50, // Mexican Peso
+            "SGP": 0.89,  // Singapore Dollar
+            "KOR": 880.00, // South Korean Won
+            "ARG": 580.00, // Argentine Peso - example of very high number
+        };
+
+        // Function to determine color based on exchange rate
+        // Higher rate = AUD is stronger = greener
+        // Lower rate = AUD is weaker = redder
+        function getColor(rate) {
+            if (rate === undefined || rate === null) return '#D3D3D3'; // Default grey for no data
+            if (rate === 1.00) return '#4CAF50'; // Green for AUD itself
+
+            // Simplified scale for demonstration
+            if (rate > 50) return '#006400';    // Dark Green (e.g. JPY, KRW)
+            if (rate > 5) return '#228B22';     // Forest Green (e.g. INR, ZAR, RUB)
+            if (rate > 1.05) return '#90EE90';   // Light Green (e.g. NZD)
+            if (rate >= 0.80 && rate <= 1.05) return '#FFFFE0'; // Light Yellow (near parity)
+            if (rate >= 0.60 && rate < 0.80) return '#FFD700';   // Gold/Orange (e.g. USD, EUR, CAD)
+            return '#FF6347'; // Tomato Red (AUD is weaker)
+        }
+
+        let geoJsonLayer; // To store the GeoJSON layer
+
+        // Fetch GeoJSON data for world countries
+        // Using a common source for country polygons. This file contains ISO A3 codes as 'id'.
+        fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                geoJsonLayer = L.geoJson(data, {
+                    style: function(feature) {
+                        const countryCode = feature.id; // ISO A3 code from GeoJSON properties
+                        const rate = exchangeRatesAUD[countryCode];
+                        return {
+                            fillColor: getColor(rate),
+                            weight: 1, // Border weight
+                            opacity: 1,
+                            color: 'white', // Border color
+                            fillOpacity: 0.7
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const countryCode = feature.id;
+                        const countryName = feature.properties.name; // Name from GeoJSON properties
+                        const rate = exchangeRatesAUD[countryCode];
+                        let popupContent = `<strong>${countryName}</strong><br>`;
+
+                        if (rate !== undefined && rate !== null) {
+                            popupContent += `1 AUD = ${rate.toFixed(2)} ${countryCode}`;
+                        } else {
+                            popupContent += 'Exchange rate data not available.';
+                        }
+                        layer.bindPopup(popupContent);
+
+                        // Highlight feature on mouseover
+                        layer.on('mouseover', function (e) {
+                            this.setStyle({
+                                weight: 2,
+                                color: '#666',
+                                fillOpacity: 0.9
+                            });
+                            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                                this.bringToFront();
+                            }
+                        });
+                        // Reset highlight on mouseout
+                        layer.on('mouseout', function (e) {
+                            geoJsonLayer.resetStyle(this);
+                        });
+                    }
+                }).addTo(map);
+                // Add legend after data is loaded
+                addLegend();
+            })
+            .catch(error => {
+                console.error('Error loading or processing GeoJSON:', error);
+                showMessage('Error', 'Could not load country data for the map. Please try refreshing the page. ' + error.message);
+            });
+
+
+        // Add a legend to the map
+        function addLegend() {
+            const legend = L.control({position: 'bottomright'});
+            legend.onAdd = function (map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                const grades = [
+                    {value: 0.50, label: '< 0.60 (AUD Weaker)', color: '#FF6347'},
+                    {value: 0.70, label: '0.60 - 0.79', color: '#FFD700'},
+                    {value: 0.90, label: '0.80 - 1.05 (Near Parity)', color: '#FFFFE0'},
+                    {value: 1.10, label: '1.05 - 4.99', color: '#90EE90'},
+                    {value: 10.00, label: '5.00 - 49.99', color: '#228B22'},
+                    {value: 100.00, label: '> 50.00 (AUD Stronger)', color: '#006400'},
+                    {value: null, label: 'AUD (Reference)', color: '#4CAF50'},
+                    {value: undefined, label: 'No Data', color: '#D3D3D3'}
+                ];
+
+                div.innerHTML += '<strong>AUD Exchange Rate Strength</strong><br>';
+                for (let i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + grades[i].color + '"></i> ' +
+                        grades[i].label + '<br>';
+                }
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // Handle window resize to ensure map is responsive
+        window.addEventListener('resize', function() {
+            map.invalidateSize();
+        });
+
+    </script>
+</body>
+</html>

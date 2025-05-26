@@ -1,0 +1,1 @@
+select last_updated_utc from exchange_rates er order by er.last_updated_utc desc limit 1;

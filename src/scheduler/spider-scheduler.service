@@ -1,0 +1,36 @@
+[Unit]
+Description=Spider Scheduler for EconCell Data Collection
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=websinthe
+Group=websinthe
+WorkingDirectory=/home/websinthe/code/econcell
+Environment=PYTHONPATH=/home/websinthe/code/econcell/src
+ExecStart=/usr/bin/python3 -m scheduler.spider_scheduler start
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=spider-scheduler
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/websinthe/code/econcell
+CapabilityBoundingSet=
+
+# Environment variables
+Environment=XR_BASE_CURRENCY=AUD
+Environment=LOG_LEVEL=INFO
+
+[Install]
+WantedBy=multi-user.target

@@ -51,19 +51,20 @@ def get_latest_xrates(filter:list[str] = None)->dict:
 
             if filter:
                 pass
-
-            for price in forex_prices:
-                price_list.append(
-                    {
-                        "base_currency" : price[0],
-                        "target_currency" : price[1],
-                        "country" : price[2],
-                        "currency_name" : price[3],
-                        "exchange_rate" : float(price[4])
-                    }    
-                )
-            
-            forex_list = { "price_list" : price_list }
+            else:
+                forex_prices = forex_full
+                for price in forex_prices:
+                    price_list.append(
+                        {
+                            "base_currency" : price[0],
+                            "target_currency" : price[1],
+                            "country" : price[2],
+                            "currency_name" : price[3],
+                            "exchange_rate" : float(price[4])
+                        }    
+                    )
+                
+                forex_list = { "price_list" : price_list }
         
             return forex_list
     

@@ -4,6 +4,7 @@ import psycopg2
 from typing import Union
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv("/home/websinthe/code/econcell/.env")
 
@@ -15,6 +16,30 @@ DB_PASSWORD = os.getenv("PSQL_PW")
 
 app = FastAPI()
 
+# --- CORS Configuration ---
+# Define the list of origins that are allowed to make cross-origin requests.
+# If your HTML file is opened directly in the browser (file:// protocol),
+# "null" is the origin you need to allow.
+# If you serve your HTML file from a local web server (e.g., http://localhost:8000 or http://127.0.0.1:5500),
+# add that specific origin.
+origins = [
+    "http://localhost",          # General localhost, covers any port if HTML served from localhost
+    "http://localhost:8000",     # Example: if you use `python -m http.server 8000`
+    "http://127.0.0.1",        # General 127.0.0.1
+    "http://127.0.0.1:5501",     # Example: VS Code Live Server default port
+    "null",                      # Allows requests from `file:///` origins (local HTML files)
+    # Add any other specific origins your frontend might be served from.
+    # For development, you might temporarily use ["*"] to allow all origins,
+    # but be more specific for production.
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # List of allowed origins
+    allow_credentials=True,      # Allows cookies to be included in requests (if needed)
+    allow_methods=["*"],         # Allows all standard HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],         # Allows all headers
+)
 
 def get_latest_xrates(filter:list[str] = None)->dict:
     try:

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run EconCell Service Monitor every 5 minutes
+Documentation=https://github.com/econcell/econcell
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

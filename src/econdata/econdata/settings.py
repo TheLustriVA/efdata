@@ -111,7 +111,7 @@ DB_PASSWORD = os.getenv("PSQL_PW")
 # Pipeline configuration
 ITEM_PIPELINES = {
     'econdata.pipelines.PostgresPipeline': 300,
-    'econdata.pipelines.RBACircularFlowPipeline': 400,
+    'econdata.pipelines_enhanced.EnhancedRBACircularFlowPipeline': 400,
 }
 
 # Other settings (keep as before)

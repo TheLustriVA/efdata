@@ -1,0 +1,8 @@
+[Unit]
+Description=EconCell Service Monitor
+Documentation=https://github.com/econcell/econcell
+After=econcell-api.service econcell-scheduler.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'systemctl is-active --quiet econcell-api.service || systemctl restart econcell-api.service; systemctl is-active --quiet econcell-scheduler.service || systemctl restart econcell-scheduler.service'

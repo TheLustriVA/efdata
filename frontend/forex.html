@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUD Exchange Rate World Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); /* Dark gradient background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+        /* Bloc Dropdown Styling */
+        .bloc-dropdown-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-width: 280px;
+        }
+        .bloc-dropdown-label {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .bloc-dropdown {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .bloc-dropdown:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(15, 23, 42, 1);
+        }
+        .bloc-dropdown:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .bloc-dropdown option {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 0.5rem;
+        }
+        /* Information Panel Styling */
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            min-width: 280px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        .info-panel.visible {
+            display: block;
+        }
+        .info-panel h3 {
+            color: #f1f5f9;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin: 0 0 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .info-panel p {
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        .info-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .info-stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .info-stat-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.25rem;
+        }
+        .info-stat-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .countries-list {
+            max-height: 120px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .countries-list h4 {
+            color: #f1f5f9;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        .countries-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: #cbd5e1;
+        }
+        /* Loading Indicator */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            display: none;
+        }
+        .loading-indicator.visible {
+            display: block;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #e2e8f0;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        /* Dimmed countries styling */
+        .country-dimmed {
+            opacity: 0.3 !important;
+            filter: grayscale(0.7) !important;
+        }
+        #map {
+            height: 100%; /* Fill the flex container */
+            width: 100%;
+            border-radius: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin: 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.5rem;
+            background-color: #1e293b !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        .leaflet-popup-content {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #e2e8f0 !important;
+        }
+        .leaflet-popup-tip {
+            background-color: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .legend {
+            padding: 1rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            line-height: 1.6rem;
+            font-size: 0.875rem;
+            color: #e2e8f0;
+        }
+        .legend strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+        .legend i {
+            width: 1.25rem;
+            height: 1.25rem;
+            float: left;
+            margin-right: 0.75rem;
+            opacity: 0.9;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        /* Custom message box for alerts */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .message-box-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            color: #e2e8f0;
+        }
+        .message-box-content h3 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .message-box-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+        .message-box-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        .message-box-button:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        /* Header styling */
+        .header-dark {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .header-dark h1 {
+            color: #f1f5f9;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .header-dark p {
+            color: #cbd5e1;
+        }
+        /* Dark scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="m-0 p-0 h-screen overflow-hidden">
+
+    <div class="w-full h-full flex flex-col">
+        <header class="text-center py-4 header-dark">
+            <h1 class="text-2xl font-bold">AUD Exchange Rate Viewer</h1>
+            <p class="text-sm mt-1">Interactive map showing AUD exchange rates against various currencies.</p>
+        </header>
+
+        <div id="map" class="flex-1">
+            <!-- Bloc Dropdown Container -->
+            <div class="bloc-dropdown-container">
+                <label for="blocSelect" class="bloc-dropdown-label">Filter by Multi-National Bloc:</label>
+                <select id="blocSelect" class="bloc-dropdown">
+                    <option value="">Loading blocs...</option>
+                </select>
+            </div>
+
+            <!-- Information Panel -->
+            <div id="infoPanel" class="info-panel">
+                <h3 id="infoPanelTitle">Bloc Information</h3>
+                <p id="infoPanelDescription">Select a bloc to view detailed information.</p>
+                <div class="info-stats">
+                    <div class="info-stat">
+                        <span id="countriesCount" class="info-stat-number">0</span>
+                        <span class="info-stat-label">Countries</span>
+                    </div>
+                    <div class="info-stat">
+                        <span id="ratesCount" class="info-stat-number">0</span>
+                        <span class="info-stat-label">Exchange Rates</span>
+                    </div>
+                </div>
+                <div class="countries-list">
+                    <h4>Member Countries:</h4>
+                    <div id="countriesList" class="countries-grid">
+                        <!-- Countries will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading bloc data...</div>
+            </div>
+        </div>
+
+        <div id="customMessageBox" class="message-box-overlay">
+            <div class="message-box-content">
+                <h3 id="messageBoxTitle">Notification</h3>
+                <p id="messageBoxText">This is a message.</p>
+                <button id="messageBoxButton" class="message-box-button">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <script>
+        // --- Custom Message Box Logic ---
+        const messageBoxOverlay = document.getElementById('customMessageBox');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxText = document.getElementById('messageBoxText');
+        const messageBoxButton = document.getElementById('messageBoxButton');
+
+        function showMessage(title, text) {
+            messageBoxTitle.textContent = title;
+            messageBoxText.textContent = text;
+            messageBoxOverlay.style.display = 'flex';
+        }
+
+        messageBoxButton.addEventListener('click', () => {
+            messageBoxOverlay.style.display = 'none';
+        });
+        // --- End Custom Message Box Logic ---
+
+        // Initialize the map and set its view to a global perspective
+        const map = L.map('map').setView([20, 0], 4); // Centered more globally, zoom level 4 for better 4K display scaling
+
+        // Add a dark tile layer to the map (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // This variable will hold the GeoJSON layer once created
+        let geoJsonLayer;
+        
+        // This will hold the processed exchange rate data, keyed by ISO A3 country code
+        let processedCountryData = {};
+        
+        // Global variables for bloc filtering
+        let availableBlocs = [];
+        let currentSelectedBloc = null;
+        let currentBlocData = null;
+        let allCountriesData = null; // Store the original full data
+        
+        // UI Elements
+        const blocSelect = document.getElementById('blocSelect');
+        const infoPanel = document.getElementById('infoPanel');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const infoPanelTitle = document.getElementById('infoPanelTitle');
+        const infoPanelDescription = document.getElementById('infoPanelDescription');
+        const countriesCount = document.getElementById('countriesCount');
+        const ratesCount = document.getElementById('ratesCount');
+        const countriesList = document.getElementById('countriesList');
+
+
+        // Function to determine color based on exchange rate
+        function getColor(rate, isInSelectedBloc = true) {
+            if (rate === undefined || rate === null) return '#D3D3D3'; // Default grey for no data
+            if (rate === 1.00) return '#4CAF50'; // Green for AUD itself (if AUD/AUD rate is 1)
+
+            // If not in selected bloc, return dimmed color
+            if (!isInSelectedBloc) return '#555555';
+
+            if (rate > 50) return '#006400';    // Dark Green
+            if (rate > 5) return '#228B22';     // Forest Green
+            if (rate > 1.05) return '#90EE90';   // Light Green
+            if (rate >= 0.80 && rate <= 1.05) return '#FFFFE0'; // Light Yellow (near parity)
+            if (rate >= 0.60 && rate < 0.80) return '#FFD700';   // Gold/Orange
+            return '#FF6347'; // Tomato Red (AUD is weaker)
+        }
+
+        // Show/hide loading indicator
+        function showLoading(show = true) {
+            if (show) {
+                loadingIndicator.classList.add('visible');
+            } else {
+                loadingIndicator.classList.remove('visible');
+            }
+        }
+
+        // Load available blocs from API
+        async function loadAvailableBlocs() {
+            try {
+                const response = await fetch('http://127.0.0.1:8222/blocs', {
+                    mode: 'cors'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch blocs: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                availableBlocs = data.available_blocs || [];
+                
+                // Populate dropdown
+                populateBlocDropdown();
+                
+            } catch (error) {
+                console.error('Error loading available blocs:', error);
+                showMessage('Error', 'Failed to load available blocs. Please check if the API server is running.');
+            }
+        }
+
+        // Populate the bloc dropdown with available options
+        function populateBlocDropdown() {
+            console.log('Populating bloc dropdown with', availableBlocs.length, 'blocs');
+            
+            // Clear existing options
+            blocSelect.innerHTML = '';
+            
+            // Add "Show All" option
+            const showAllOption = document.createElement('option');
+            showAllOption.value = '';
+            showAllOption.textContent = 'Show All Countries';
+            blocSelect.appendChild(showAllOption);
+            
+            // Add available blocs
+            availableBlocs.forEach(blocName => {
+                const option = document.createElement('option');
+                option.value = blocName;
+                option.textContent = formatBlocName(blocName);
+                blocSelect.appendChild(option);
+            });
+            
+            // Remove any existing event listeners and add new one
+            blocSelect.removeEventListener('change', handleBlocSelectionChange);
+            blocSelect.addEventListener('change', handleBlocSelectionChange);
+            console.log('Event listener attached to bloc dropdown');
+            console.log('Dropdown element:', blocSelect);
+            console.log('Dropdown current value:', blocSelect.value);
+            
+            // Add additional debugging
+            blocSelect.addEventListener('click', function(e) {
+                console.log('Dropdown clicked:', e.target.value);
+            });
+        }
+
+        // Format bloc names for display
+        function formatBlocName(blocName) {
+            const nameMap = {
+                'anzus': 'ANZUS',
+                'five-eyes': 'Five Eyes',
+                'aukus': 'AUKUS',
+                'g20': 'G20',
+                'oecd': 'OECD',
+                'apec': 'APEC',
+                'cptpp': 'CPTPP',
+                'rcep': 'RCEP',
+                'pacific-islands-forum': 'Pacific Islands Forum',
+                'east-asia-summit': 'East Asia Summit',
+                'asean-regional-forum': 'ASEAN Regional Forum',
+                'commonwealth-of-nations': 'Commonwealth of Nations',
+                'quad': 'QUAD',
+                'iora': 'Indian Ocean Rim Association',
+                'antarctic-treaty': 'Antarctic Treaty'
+            };
+            return nameMap[blocName] || blocName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Handle bloc selection changes
+        async function handleBlocSelectionChange(event) {
+            const selectedBloc = event.target.value;
+            console.log('Bloc selection changed to:', selectedBloc);
+            
+            if (selectedBloc === '') {
+                // Show all countries
+                console.log('Showing all countries');
+                currentSelectedBloc = null;
+                currentBlocData = null;
+                updateMapWithData(allCountriesData);
+                hideInfoPanel();
+            } else {
+                // Load and show selected bloc
+                console.log('Loading bloc data for:', selectedBloc);
+                await loadBlocData(selectedBloc);
+            }
+        }
+
+        // Load data for a specific bloc
+        async function loadBlocData(blocName) {
+            try {
+                console.log('Starting to load bloc data for:', blocName);
+                showLoading(true);
+                
+                const url = `http://127.0.0.1:8222/${blocName}`;
+                console.log('Fetching from URL:', url);
+                
+                const response = await fetch(url, {
+                    mode: 'cors'
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch bloc data: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Bloc data received:', data);
+                
+                currentSelectedBloc = blocName;
+                currentBlocData = data;
+                
+                // Update map with bloc data
+                console.log('Updating map with bloc data');
+                updateMapWithData(data);
+                
+                // Update information panel
+                console.log('Updating info panel');
+                updateInfoPanel(data);
+                
+                showLoading(false);
+                console.log('Bloc loading completed successfully');
+                
+            } catch (error) {
+                console.error('Error loading bloc data:', error);
+                showMessage('Error', `Failed to load data for ${formatBlocName(blocName)}. Please try again.`);
+                showLoading(false);
+            }
+        }
+
+        // Update information panel with bloc data
+        function updateInfoPanel(data) {
+            if (!data || !data.bloc_info) return;
+            
+            const blocInfo = data.bloc_info;
+            
+            // Update title and description
+            infoPanelTitle.textContent = formatBlocName(blocInfo.name);
+            infoPanelDescription.textContent = getBlocDescription(blocInfo.name);
+            
+            // Update statistics
+            countriesCount.textContent = blocInfo.countries_in_bloc || 0;
+            ratesCount.textContent = blocInfo.exchange_rates_found || 0;
+            
+            // Update countries list
+            if (blocInfo.bloc_countries && blocInfo.bloc_countries.length > 0) {
+                const countryNames = blocInfo.bloc_countries.map(code =>
+                    getCountryNameFromCode(code)
+                ).sort();
+                
+                countriesList.innerHTML = '';
+                countryNames.forEach(name => {
+                    const countryDiv = document.createElement('div');
+                    countryDiv.textContent = name;
+                    countriesList.appendChild(countryDiv);
+                });
+            }
+            
+            // Show panel
+            infoPanel.classList.add('visible');
+        }
+
+        // Hide information panel
+        function hideInfoPanel() {
+            infoPanel.classList.remove('visible');
+        }
+
+        // Get bloc description
+        function getBlocDescription(blocName) {
+            const descriptions = {
+                'anzus': 'Security alliance between Australia, New Zealand, and United States established in 1951.',
+                'five-eyes': 'Intelligence sharing alliance between Australia, Canada, New Zealand, UK, and US.',
+                'aukus': 'Trilateral security partnership between Australia, UK, and US established in 2021.',
+                'g20': 'International forum for major economies representing 80% of global GDP.',
+                'oecd': 'International economic organization promoting policies for prosperity and equality.',
+                'apec': 'Regional economic forum for Asia-Pacific countries established in 1989.',
+                'cptpp': 'Trade agreement promoting economic integration in the Asia-Pacific region.',
+                'rcep': 'Regional trade agreement covering Asia-Pacific economies.',
+                'pacific-islands-forum': 'Regional organization enhancing cooperation among Pacific Island countries.',
+                'east-asia-summit': 'Regional forum for dialogue on strategic, political and economic issues.',
+                'asean-regional-forum': 'Security dialogue forum for Asia-Pacific region.',
+                'commonwealth-of-nations': 'Political association of former British territories and dependencies.',
+                'quad': 'Strategic security dialogue between Australia, India, Japan, and United States.',
+                'iora': 'Regional cooperation organization for Indian Ocean rim countries.',
+                'antarctic-treaty': 'International agreement preserving Antarctica for peaceful scientific research.'
+            };
+            return descriptions[blocName] || 'Multi-national bloc with shared economic or security interests.';
+        }
+
+        // Convert ISO country code to readable name
+        function getCountryNameFromCode(code) {
+            // This is a simplified version - in a real app you'd use the full ISO mapping
+            const commonNames = {
+                'AUS': 'Australia', 'USA': 'United States', 'GBR': 'United Kingdom',
+                'CAN': 'Canada', 'NZL': 'New Zealand', 'JPN': 'Japan', 'IND': 'India',
+                'CHN': 'China', 'DEU': 'Germany', 'FRA': 'France', 'ITA': 'Italy',
+                'BRA': 'Brazil', 'RUS': 'Russia', 'KOR': 'South Korea', 'IDN': 'Indonesia',
+                'MEX': 'Mexico', 'SAU': 'Saudi Arabia', 'ZAF': 'South Africa', 'TUR': 'Turkey',
+                'ARG': 'Argentina'
+            };
+            return commonNames[code] || code;
+        }
+
+        // Main function to fetch data and initialize the map
+        async function initializeMapWithApiData() {
+            try {
+                // --- 1. Get API Data ---
+                const apiEndpoint = 'http://127.0.0.1:8222/';
+                console.log(`Fetching exchange rates from: ${apiEndpoint}`);
+
+                // IMPORTANT: For 'NetworkError when attempting to fetch resource.'
+                // This error often indicates a CORS (Cross-Origin Resource Sharing) issue.
+                // Your FastAPI server at 'http://127.0.0.1:8222/' MUST be configured
+                // to send appropriate CORS headers (e.g., 'Access-Control-Allow-Origin')
+                // to allow requests from the origin this HTML page is served from
+                // (e.g., 'file://', 'http://localhost:xxxx', or 'http://127.0.0.1:xxxx').
+                // See the conversation for an example of how to set up CORS in FastAPI.
+                // Also, ensure your FastAPI server is running and accessible.
+
+                const apiResponseRaw = await fetch(apiEndpoint, {
+                    mode: 'cors' // Explicitly set mode to CORS.
+                });
+                
+                if (!apiResponseRaw.ok) {
+                    // If the HTTP response status is not OK, throw an error
+                    throw new Error(`API error! Status: ${apiResponseRaw.status} ${apiResponseRaw.statusText}. Failed to fetch from ${apiEndpoint}. Check server logs and CORS configuration.`);
+                }
+                
+                const apiData = await apiResponseRaw.json();
+                console.log("Successfully fetched API data:", apiData);
+
+                if (!apiData || !apiData.price_list || !Array.isArray(apiData.price_list)) {
+                    throw new Error("API data is not in the expected format (missing 'price_list' array).");
+                }
+
+                // --- 2. Prepare API data for lookup by country name ---
+                const apiCountryDataMap = new Map();
+                apiData.price_list.forEach(item => {
+                    if (item.country && typeof item.country === 'string') {
+                        const normalizedApiCountryName = item.country.toLowerCase().trim();
+                        apiCountryDataMap.set(normalizedApiCountryName, {
+                            rate: item.exchange_rate,
+                            currency: item.target_currency,
+                            apiOriginalCountryName: item.country 
+                        });
+                    }
+                });
+
+                // --- 3. Fetch GeoJSON Country Data ---
+                const geoJsonURL = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
+                console.log(`Fetching GeoJSON from: ${geoJsonURL}`);
+                const geoJsonResponse = await fetch(geoJsonURL);
+                if (!geoJsonResponse.ok) {
+                    throw new Error(`GeoJSON fetch error! status: ${geoJsonResponse.status}. Failed to fetch from ${geoJsonURL}`);
+                }
+                const geoJsonData = await geoJsonResponse.json();
+                console.log("Successfully fetched GeoJSON data.");
+
+
+                // --- 4. Combine API data with GeoJSON data ---
+                processedCountryData = {}; // Reset before processing
+                geoJsonData.features.forEach(feature => {
+                    const isoA3 = feature.id; 
+                    const geoJsonCountryName = feature.properties.name; 
+
+                    if (!isoA3 || !geoJsonCountryName || typeof geoJsonCountryName !== 'string') {
+                        return; 
+                    }
+                    
+                    const normalizedGeoJsonCountryName = geoJsonCountryName.toLowerCase().trim();
+                    let matchedApiData = apiCountryDataMap.get(normalizedGeoJsonCountryName);
+
+                    if (!matchedApiData) {
+                        const variations = {
+                            "united states of america": "united states",
+                            "russian federation": "russia",
+                            "republic of korea": "south korea",
+                            "iran (islamic republic of)": "iran",
+                            "syrian arab republic": "syria",
+                            "viet nam": "vietnam",
+                            "bolivia (plurinational state of)": "bolivia",
+                            "venezuela (bolivarian republic of)": "venezuela",
+                            "czechia": "czech republic",
+                            "brunei darussalam": "brunei",
+                            "côte d'ivoire": "ivory coast",
+                            "lao people's democratic republic": "laos",
+                            "tanzania, united republic of": "tanzania",
+                            "moldova, republic of": "moldova",
+                            "macedonia, the former yugoslav republic of": "north macedonia", // Common GeoJSON name
+                            "palestine, state of": "palestine",
+                            "united republic of tanzania": "tanzania", // Another common GeoJSON variation
+                            "congo, the democratic republic of the": "democratic republic of the congo",
+                            "timor-leste": "east timor" // API might use East Timor
+                        };
+                        const apiNameToTry = variations[normalizedGeoJsonCountryName];
+                        if (apiNameToTry) {
+                           matchedApiData = apiCountryDataMap.get(apiNameToTry);
+                        }
+                    }
+
+                    if (matchedApiData) {
+                        processedCountryData[isoA3] = {
+                            rate: matchedApiData.rate,
+                            currencyCode: matchedApiData.currency,
+                            geoJsonDisplayName: geoJsonCountryName,
+                            apiOriginalCountryName: matchedApiData.apiOriginalCountryName
+                        };
+                    }
+                });
+                
+                const totalGeoJsonCountries = geoJsonData.features.length;
+                const matchedGeoJsonCountries = Object.keys(processedCountryData).length;
+                console.log(`Processed ${totalGeoJsonCountries} GeoJSON features. Matched ${matchedGeoJsonCountries} to API data.`);
+                if (matchedGeoJsonCountries < totalGeoJsonCountries * 0.75) { 
+                     console.warn(`Warning: Only ${((matchedGeoJsonCountries/totalGeoJsonCountries)*100).toFixed(1)}% of GeoJSON countries were matched. Review country name discrepancies.`);
+                }
+
+
+                // --- 5. Create GeoJSON Layer with Styles and Popups ---
+                if (geoJsonLayer) { 
+                    map.removeLayer(geoJsonLayer);
+                }
+                geoJsonLayer = L.geoJson(geoJsonData, {
+                    style: function(feature) {
+                        const countryInfo = processedCountryData[feature.id];
+                        const rate = countryInfo ? countryInfo.rate : undefined;
+                        return {
+                            fillColor: getColor(rate),
+                            weight: 0.8,
+                            opacity: 0.8,
+                            color: '#64748b',
+                            fillOpacity: 0.8
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        const countryInfo = processedCountryData[feature.id];
+                        const displayName = feature.properties.name || "Unknown Country";
+                        let popupContent = `<strong>${displayName}</strong><br>`;
+
+                        if (countryInfo) {
+                            popupContent += `1 AUD = ${countryInfo.rate.toFixed(2)} ${countryInfo.currencyCode}`;
+                        } else {
+                            popupContent += 'Exchange rate data not available.';
+                        }
+                        layer.bindPopup(popupContent);
+
+                        layer.on('mouseover', function (e) {
+                            this.setStyle({ weight: 2.5, color: '#555', fillOpacity: 0.9 });
+                            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                                this.bringToFront();
+                            }
+                        });
+                        layer.on('mouseout', function (e) {
+                            // Manually reset to original style values
+                            const countryInfo = processedCountryData[feature.id];
+                            const rate = countryInfo ? countryInfo.rate : undefined;
+                            
+                            // Determine if this country is in the selected bloc
+                            let blocCountries = null;
+                            if (currentBlocData && currentBlocData.bloc_info && currentBlocData.bloc_info.bloc_countries) {
+                                blocCountries = new Set(currentBlocData.bloc_info.bloc_countries);
+                            }
+                            const isInSelectedBloc = !blocCountries || blocCountries.has(feature.id);
+                            
+                            // Apply the correct styling based on bloc membership
+                            this.setStyle({
+                                fillColor: getColor(rate, isInSelectedBloc),
+                                weight: isInSelectedBloc ? 0.8 : 0.3,
+                                opacity: isInSelectedBloc ? 0.8 : 0.3,
+                                color: isInSelectedBloc ? '#64748b' : '#333333',
+                                fillOpacity: isInSelectedBloc ? 0.8 : 0.3
+                            });
+                        });
+                    }
+                }).addTo(map);
+
+                // Store the original full data for "Show All" functionality
+                allCountriesData = apiData;
+
+                addLegend();
+
+                // Load available blocs after map initialization
+                await loadAvailableBlocs();
+
+            } catch (error) {
+                console.error('Error initializing map with API data:', error);
+                showMessage('Map Initialization Error', `Could not load map data. ${error.message}. Check console for details. Ensure your local API at http://127.0.0.1:8222/ is running and accessible, and that it has CORS enabled if this page is served from a different origin (e.g., file://).`);
+            }
+        }
+
+// Cache for country name variations to improve performance
+        let countryVariationsCache = null;
+        let apiDataValidationCache = new Map();
+        
+        // Debug mode flag - can be enabled via console: window.debugCountryMapping = true
+        const isDebugMode = () => window.debugCountryMapping === true;
+        // Update map with data (either all countries or filtered bloc data)
+        async function updateMapWithData(apiData) {
+            const startTime = performance.now();
+            let mappingStats = {
+                totalGeoJsonCountries: 0,
+                successfulMatches: 0,
+                variationMatches: 0,
+                unmatchedCountries: [],
+                malformedApiEntries: [],
+                duplicateApiEntries: []
+            };
+
+            try {
+                // Enhanced API data validation
+                if (!apiData) {
+                    throw new Error("API data is null or undefined");
+                }
+                if (!apiData.price_list) {
+                    throw new Error("API data is missing 'price_list' property");
+                }
+                if (!Array.isArray(apiData.price_list)) {
+                    throw new Error("API 'price_list' is not an array");
+                }
+                if (apiData.price_list.length === 0) {
+                    console.warn("API returned empty price_list array");
+                    showMessage('Data Warning', 'API returned no exchange rate data. This may indicate an issue with the data source.');
+                }
+
+                // --- 1. Prepare API data for lookup by country name with validation ---
+                const apiCountryDataMap = new Map();
+                const seenCountries = new Set();
+                
+                apiData.price_list.forEach((item, index) => {
+                    // Validate API data structure
+                    if (!item || typeof item !== 'object') {
+                        mappingStats.malformedApiEntries.push(`Index ${index}: Invalid item structure`);
+                        return;
+                    }
+                    
+                    if (!item.country || typeof item.country !== 'string') {
+                        mappingStats.malformedApiEntries.push(`Index ${index}: Missing or invalid country name`);
+                        return;
+                    }
+                    
+                    if (item.exchange_rate === null || item.exchange_rate === undefined || isNaN(item.exchange_rate)) {
+                        mappingStats.malformedApiEntries.push(`Index ${index}: Invalid exchange rate for ${item.country}`);
+                        return;
+                    }
+                    
+                    const normalizedApiCountryName = item.country.toLowerCase().trim();
+                    
+                    // Check for duplicate entries
+                    if (seenCountries.has(normalizedApiCountryName)) {
+                        mappingStats.duplicateApiEntries.push(item.country);
+                        if (isDebugMode()) {
+                            console.warn(`Duplicate API entry for country: ${item.country}`);
+                        }
+                    }
+                    seenCountries.add(normalizedApiCountryName);
+                    
+                    apiCountryDataMap.set(normalizedApiCountryName, {
+                        rate: parseFloat(item.exchange_rate),
+                        currency: item.target_currency || 'Unknown',
+                        apiOriginalCountryName: item.country
+                    });
+                });
+                
+                if (isDebugMode()) {
+                    console.log(`API Data Validation - Processed ${apiData.price_list.length} entries, ${apiCountryDataMap.size} valid countries`);
+                    if (mappingStats.malformedApiEntries.length > 0) {
+                        console.warn(`Malformed API entries:`, mappingStats.malformedApiEntries);
+                    }
+                    if (mappingStats.duplicateApiEntries.length > 0) {
+                        console.warn(`Duplicate API entries:`, mappingStats.duplicateApiEntries);
+                    }
+                }
+
+                // --- 2. Get current GeoJSON data (already loaded) ---
+                if (!geoJsonLayer) {
+                    throw new Error("GeoJSON layer not initialized");
+                }
+
+                // --- 3. Combine API data with GeoJSON data with enhanced matching and logging ---
+                const newProcessedCountryData = {};
+                mappingStats.totalGeoJsonCountries = 0;
+                
+                // Cache the variations object for better performance (avoid recreating on each iteration)
+                if (!countryVariationsCache) {
+                    // Country name variations synchronized with backend COUNTRY_NAME_ALIASES
+                    // Maps GeoJSON country names to expected API country names (consistent with backend normalization)
+                    countryVariationsCache = {
+                            // United States variations
+                            "united states of america": "united states",
+                            
+                            // Russia variations
+                            "russian federation": "russia",
+                            
+                            // South Korea variations
+                            "republic of korea": "south korea",
+                            "korea, republic of": "south korea",
+                            
+                            // Czech Republic variations
+                            "czechia": "czech republic",
+                            
+                            // United Kingdom variations
+                            "united kingdom of great britain and northern ireland": "united kingdom",
+                            
+                            // Iran variations
+                            "iran (islamic republic of)": "iran",
+                            "iran, islamic republic of": "iran",
+                            
+                            // Venezuela variations
+                            "venezuela (bolivarian republic of)": "venezuela",
+                            "venezuela, bolivarian republic of": "venezuela",
+                            
+                            // Bolivia variations
+                            "bolivia (plurinational state of)": "bolivia",
+                            "bolivia, plurinational state of": "bolivia",
+                            
+                            // Tanzania variations
+                            "tanzania, united republic of": "tanzania",
+                            "united republic of tanzania": "tanzania",
+                            
+                            // Moldova variations
+                            "moldova, republic of": "moldova",
+                            
+                            // Syria variations
+                            "syrian arab republic": "syria",
+                            
+                            // North Korea variations
+                            "korea, democratic people's republic of": "north korea",
+                            
+                            // Vietnam variations
+                            "viet nam": "vietnam",
+                            
+                            // Laos variations
+                            "lao people's democratic republic": "laos",
+                            
+                            // Taiwan variations
+                            "taiwan, province of china": "taiwan",
+                            
+                            // Turkey variations
+                            "türkiye": "turkey",
+                            
+                            // Netherlands variations
+                            "netherlands, kingdom of the": "netherlands",
+                            
+                            // Congo variations
+                            "congo, democratic republic of the": "democratic republic of congo",
+                            "congo, the democratic republic of the": "democratic republic of congo",
+                            
+                            // Palestine variations
+                            "palestine, state of": "palestine",
+                            
+                            // Eswatini variations
+                            "swaziland": "eswatini",
+                            
+                            // North Macedonia variations
+                            "macedonia, the former yugoslav republic of": "north macedonia",
+                            "former yugoslav republic of macedonia": "north macedonia",
+                            
+                            // Brunei variations
+                            "brunei darussalam": "brunei",
+                            
+                            // Myanmar variations
+                            "burma": "myanmar",
+                            
+                            // Timor-Leste variations
+                            "timor-leste": "east timor",
+                            
+                            // Cabo Verde variations
+                            "cape verde": "cabo verde",
+                            
+                            // Micronesia variations
+                            "micronesia, federated states of": "micronesia",
+                            
+                            // Ivory Coast variations
+                            "côte d'ivoire": "ivory coast"
+                    };
+                }
+                
+                geoJsonLayer.eachLayer(function(layer) {
+                    const feature = layer.feature;
+                    const isoA3 = feature.id;
+                    const geoJsonCountryName = feature.properties.name;
+
+                    if (!isoA3 || !geoJsonCountryName || typeof geoJsonCountryName !== 'string') {
+                        mappingStats.totalGeoJsonCountries++;
+                        return;
+                    }
+                    
+                    mappingStats.totalGeoJsonCountries++;
+                    const normalizedGeoJsonCountryName = geoJsonCountryName.toLowerCase().trim();
+                    let matchedApiData = apiCountryDataMap.get(normalizedGeoJsonCountryName);
+
+                    if (!matchedApiData) {
+                        // Try variations from cache
+                        const apiNameToTry = countryVariationsCache[normalizedGeoJsonCountryName];
+                        if (apiNameToTry) {
+                            matchedApiData = apiCountryDataMap.get(apiNameToTry);
+                            if (matchedApiData) {
+                                mappingStats.variationMatches++;
+                                if (isDebugMode()) {
+                                    console.log(`Country variation match: '${geoJsonCountryName}' -> '${apiNameToTry}' -> matched API data`);
+                                }
+                            }
+                        }
+                    } else {
+                        mappingStats.successfulMatches++;
+                        if (isDebugMode()) {
+                            console.log(`Direct country match: '${geoJsonCountryName}' -> matched API data`);
+                        }
+                    }
+
+                    if (matchedApiData) {
+                        newProcessedCountryData[isoA3] = {
+                            rate: matchedApiData.rate,
+                            currencyCode: matchedApiData.currency,
+                            geoJsonDisplayName: geoJsonCountryName,
+                            apiOriginalCountryName: matchedApiData.apiOriginalCountryName
+                        };
+                    } else {
+                        mappingStats.unmatchedCountries.push({
+                            geoJsonName: geoJsonCountryName,
+                            isoCode: isoA3
+                        });
+                        if (isDebugMode()) {
+                            console.warn(`No API data match found for: '${geoJsonCountryName}' (ISO: ${isoA3})`);
+                        }
+                    }
+
+                    if (matchedApiData) {
+                        newProcessedCountryData[isoA3] = {
+                            rate: matchedApiData.rate,
+                            currencyCode: matchedApiData.currency,
+                            geoJsonDisplayName: geoJsonCountryName,
+                            apiOriginalCountryName: matchedApiData.apiOriginalCountryName
+                        };
+                    }
+                });
+
+                // Update the global processed data
+                processedCountryData = newProcessedCountryData;
+                
+                // Log mapping statistics and provide user feedback
+                const endTime = performance.now();
+                const processingTime = endTime - startTime;
+                
+                if (isDebugMode()) {
+                    console.log(`Country Mapping Statistics:
+                        - Total GeoJSON countries: ${mappingStats.totalGeoJsonCountries}
+                        - Successful direct matches: ${mappingStats.successfulMatches}
+                        - Variation matches: ${mappingStats.variationMatches}
+                        - Unmatched countries: ${mappingStats.unmatchedCountries.length}
+                        - Processing time: ${processingTime.toFixed(2)}ms`);
+                    
+                    if (mappingStats.unmatchedCountries.length > 0) {
+                        console.warn(`Unmatched countries:`, mappingStats.unmatchedCountries);
+                    }
+                }
+                
+                // Warn about significant data gaps that might affect bloc filtering
+                const matchPercentage = ((mappingStats.successfulMatches + mappingStats.variationMatches) / mappingStats.totalGeoJsonCountries) * 100;
+                if (matchPercentage < 80) {
+                    console.warn(`Low country matching rate: ${matchPercentage.toFixed(1)}%. This may affect bloc filtering accuracy.`);
+                    showMessage('Data Quality Warning',
+                        `Only ${matchPercentage.toFixed(1)}% of countries were successfully matched with exchange rate data. ` +
+                        `This may result in incomplete bloc visualizations. Enable debug mode (window.debugCountryMapping = true) for details.`);
+                }
+                
+                // Log bloc-specific warnings if filtering is active
+                if (currentBlocData && currentBlocData.bloc_info && currentBlocData.bloc_info.bloc_countries) {
+                    const blocCountries = new Set(currentBlocData.bloc_info.bloc_countries);
+                    const unmatchedBlocCountries = mappingStats.unmatchedCountries.filter(country =>
+                        blocCountries.has(country.isoCode)
+                    );
+                    
+                    if (unmatchedBlocCountries.length > 0) {
+                        console.warn(`Bloc filtering warning: ${unmatchedBlocCountries.length} countries in ${formatBlocName(currentSelectedBloc)} have no exchange rate data:`,
+                            unmatchedBlocCountries.map(c => c.geoJsonName));
+                        
+                        if (unmatchedBlocCountries.length / blocCountries.size > 0.2) {
+                            showMessage('Bloc Data Warning',
+                                `${unmatchedBlocCountries.length} countries in ${formatBlocName(currentSelectedBloc)} are missing exchange rate data. ` +
+                                `This may significantly affect the visualization accuracy.`);
+                        }
+                    }
+                }
+
+                // --- 4. Update map styling ---
+                let blocCountries = null;
+                if (currentBlocData && currentBlocData.bloc_info && currentBlocData.bloc_info.bloc_countries) {
+                    blocCountries = new Set(currentBlocData.bloc_info.bloc_countries);
+                }
+
+                geoJsonLayer.eachLayer(function(layer) {
+                    const feature = layer.feature;
+                    const isoA3 = feature.id;
+                    const countryInfo = processedCountryData[isoA3];
+                    const rate = countryInfo ? countryInfo.rate : undefined;
+                    
+                    // Determine if this country is in the selected bloc
+                    const isInSelectedBloc = !blocCountries || blocCountries.has(isoA3);
+                    
+                    // Update styling
+                    const style = {
+                        fillColor: getColor(rate, isInSelectedBloc),
+                        weight: isInSelectedBloc ? 0.8 : 0.3,
+                        opacity: isInSelectedBloc ? 0.8 : 0.3,
+                        color: isInSelectedBloc ? '#64748b' : '#333333',
+                        fillOpacity: isInSelectedBloc ? 0.8 : 0.3
+                    };
+                    
+                    layer.setStyle(style);
+                    
+                    // Update popup content
+                    const displayName = feature.properties.name || "Unknown Country";
+                    let popupContent = `<strong>${displayName}</strong><br>`;
+
+                    if (countryInfo) {
+                        popupContent += `1 AUD = ${countryInfo.rate.toFixed(2)} ${countryInfo.currencyCode}`;
+                    } else {
+                        popupContent += 'Exchange rate data not available.';
+                    }
+                    
+                    // Add bloc information if applicable
+                    if (blocCountries && blocCountries.has(isoA3)) {
+                        popupContent += `<br><em>Member of ${formatBlocName(currentSelectedBloc)}</em>`;
+                    }
+                    
+                    layer.getPopup().setContent(popupContent);
+                });
+
+            } catch (error) {
+                console.error('Error updating map with data:', error);
+                showMessage('Update Error', `Could not update map data. ${error.message}`);
+            }
+        }
+
+        // Add a legend to the map
+        function addLegend() {
+            const existingLegend = document.querySelector('.info.legend');
+            if (existingLegend) {
+                existingLegend.remove();
+            }
+
+            const legend = L.control({position: 'bottomleft'});
+            legend.onAdd = function (map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                const grades = [
+                    {label: '< 0.60 (AUD Weaker)', color: '#FF6347'}, 
+                    {label: '0.60 - 0.79', color: '#FFD700'},   
+                    {label: '0.80 - 1.05 (Near Parity)', color: '#FFFFE0'}, 
+                    {label: '1.05 - 4.99', color: '#90EE90'},   
+                    {label: '5.00 - 49.99', color: '#228B22'},     
+                    {label: '> 50.00 (AUD Stronger)', color: '#006400'},    
+                    {label: 'AUD (Reference)', color: '#4CAF50'}, 
+                    {label: 'No Data', color: '#D3D3D3'} 
+                ];
+
+                div.innerHTML += '<strong class="text-sm">AUD Exchange Rate Strength</strong><br>';
+                for (let i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + grades[i].color + '"></i> ' +
+                        grades[i].label + '<br>';
+                }
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        // Handle window resize to ensure map is responsive
+        window.addEventListener('resize', function() {
+            map.invalidateSize();
+        });
+
+        // Call the main initialization function when the script loads
+        initializeMapWithApiData();
+
+    </script>
+</body>
+</html>

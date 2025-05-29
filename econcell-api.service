@@ -1,0 +1,30 @@
+[Unit]
+Description=EconCell API Server
+Documentation=https://github.com/econcell/econcell
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=exec
+User=websinthe
+Group=websinthe
+WorkingDirectory=/home/websinthe/code/econcell
+Environment="PATH=/home/websinthe/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/websinthe/code/econcell"
+ExecStart=/home/websinthe/code/econcell/.venv/bin/python -m uvicorn frontend.api:app --host 0.0.0.0 --port 7001
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/var/log/econcell/api.log
+StandardError=append:/var/log/econcell/api.error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+# Removed strict filesystem protection that was causing namespace issues
+# ProtectSystem=strict
+# ProtectHome=read-only
+# ReadWritePaths=/home/websinthe/code/econcell/data
+ReadWritePaths=/var/log/econcell
+
+[Install]
+WantedBy=multi-user.target

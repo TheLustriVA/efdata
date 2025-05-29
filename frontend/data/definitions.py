@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import json
 """
 Multinational Political, Economic, Security, and Diplomatic Blocs
 that Australia belongs to as a member state.
@@ -1369,26 +1369,26 @@ def find_iso_3166_code(country_name):
     return None
 
 # Create combined list based on ISO 4217 with ISO 3166 codes
-# combined_iso_codes = []
-# unmatched_countries = []
-# 
-# for entry in ISO_4217_CODES:
-#     country_name = entry["country"]
-#     iso_3166_code = find_iso_3166_code(country_name)
-#     
-#     if iso_3166_code:
-#         # Create combined entry with ISO 3166 code
-#         combined_entry = {
-#             "country": country_name,
-#             "currency": entry["currency"],
-#             "currency_code": entry["code"],
-#             "country_code": iso_3166_code
-#         }
-#         combined_iso_codes.append(combined_entry)
-#     else:
-#         # Add to unmatched list
-#         unmatched_countries.append(country_name)
-# 
+combined_iso_codes = []
+unmatched_countries = []
+
+for entry in ISO_4217_CODES:
+    country_name = entry["country"]
+    iso_3166_code = find_iso_3166_code(country_name)
+    
+    if iso_3166_code:
+        # Create combined entry with ISO 3166 code
+        combined_entry = {
+            "country": country_name,
+            "currency": entry["currency"],
+            "currency_code": entry["code"],
+            "country_code": iso_3166_code
+        }
+        combined_iso_codes.append(combined_entry)
+    else:
+        # Add to unmatched list
+        unmatched_countries.append(country_name)
+
 # Print results
 # print(f"\nCombined ISO codes (4217 + 3166): {len(combined_iso_codes)} entries")
 # print(f"Unmatched countries from ISO 4217: {len(unmatched_countries)} entries")
@@ -1436,7 +1436,7 @@ def get_currency_by_country_code(country_code):
     return None
 
 def convert_bloc_to_4217(bloc):
-    with open("/home/websinthe/code/econcell/site/code_conv.json", "r", encoding="utf-8") as f:
+    with open("/home/websinthe/code/econcell/frontend/data/code_conv.json", "r", encoding="utf-8") as f:
         payload = json.load(f)
     
     new_set = set()

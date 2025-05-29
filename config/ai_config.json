@@ -1,0 +1,138 @@
+{
+  "models": [
+    {
+      "name": "qwen_32b_primary",
+      "model_path": "qwen/qwq-32b-preview",
+      "priority": "high",
+      "gpu_memory_gb": 32.0,
+      "ram_memory_gb": 8.0,
+      "max_concurrent_requests": 2,
+      "specialized_domains": [
+        "economic_analysis",
+        "hypothesis_generation", 
+        "reasoning",
+        "policy_analysis"
+      ],
+      "api_endpoint": "http://localhost:11434",
+      "model_type": "ollama",
+      "context_length": 32768,
+      "temperature": 0.3
+    },
+    {
+      "name": "llama_70b_verification",
+      "model_path": "llama3.1:70b",
+      "priority": "medium", 
+      "gpu_memory_gb": 24.0,
+      "ram_memory_gb": 12.0,
+      "max_concurrent_requests": 1,
+      "specialized_domains": [
+        "verification",
+        "cross_checking",
+        "validation",
+        "fact_checking"
+      ],
+      "api_endpoint": "http://localhost:11434",
+      "model_type": "ollama",
+      "context_length": 128000,
+      "temperature": 0.1
+    },
+    {
+      "name": "qwen_7b_specialized",
+      "model_path": "qwen2.5:7b",
+      "priority": "low",
+      "gpu_memory_gb": 8.0,
+      "ram_memory_gb": 4.0,
+      "max_concurrent_requests": 3,
+      "specialized_domains": [
+        "data_enrichment",
+        "classification",
+        "summarization",
+        "anomaly_detection"
+      ],
+      "api_endpoint": "http://localhost:11434",
+      "model_type": "ollama",
+      "context_length": 32768,
+      "temperature": 0.5
+    }
+  ],
+  "resource_limits": {
+    "max_gpu_memory_gb": 60.0,
+    "max_ram_memory_gb": 160.0,
+    "gpu_utilization_threshold": 0.85,
+    "ram_utilization_threshold": 0.90
+  },
+  "task_queue": {
+    "max_queue_size": 10000,
+    "default_timeout_seconds": 300,
+    "max_retries": 3,
+    "monitoring_interval": 30
+  },
+  "load_balancing": {
+    "strategy": "intelligent",
+    "response_time_weight": 0.3,
+    "error_rate_weight": 0.25,
+    "load_weight": 0.2,
+    "health_weight": 0.15,
+    "resource_weight": 0.1,
+    "min_requests_for_stats": 5,
+    "performance_window": 300
+  },
+  "memory_management": {
+    "max_system_ram_usage": 171798691840,
+    "max_gpu_memory_usage": 64424509440,
+    "model_cache_size": 34359738368,
+    "data_cache_size": 17179869184,
+    "temp_memory_size": 8589934592,
+    "ram_pressure_threshold": 0.85,
+    "gpu_pressure_threshold": 0.90,
+    "critical_memory_threshold": 0.95,
+    "cache_ttl_seconds": 3600,
+    "max_cache_entries": 10000,
+    "gc_frequency": 60
+  },
+  "verification": {
+    "enabled": true,
+    "models": ["llama_70b_verification"],
+    "consensus_threshold": 0.7,
+    "timeout_seconds": 120,
+    "required_for_analysis_types": [
+      "policy_analysis",
+      "forecasting", 
+      "hypothesis_generation"
+    ]
+  },
+  "economic_context": {
+    "focus_region": "Australia",
+    "primary_data_sources": [
+      "RBA",
+      "ABS", 
+      "Treasury",
+      "APRA",
+      "ACCC"
+    ],
+    "specialization_areas": [
+      "monetary_policy",
+      "trade_analysis",
+      "commodity_economics", 
+      "policy_impact_assessment",
+      "financial_stability",
+      "labor_market_analysis"
+    ],
+    "rba_circular_flow": {
+      "enabled": true,
+      "components": ["Y", "C", "S", "I", "G", "X", "M", "T"],
+      "sectors": ["households", "firms", "government", "rba_banks", "rest_of_world"]
+    }
+  },
+  "monitoring": {
+    "health_check_interval": 30,
+    "stats_update_interval": 10,
+    "performance_logging_interval": 300,
+    "alert_thresholds": {
+      "high_memory_usage": 0.9,
+      "high_error_rate": 0.1,
+      "long_response_time": 120,
+      "queue_backlog": 1000
+    }
+  }
+}

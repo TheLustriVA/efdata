@@ -1,0 +1,30 @@
+[Unit]
+Description=EconCell Spider Scheduler
+Documentation=https://github.com/econcell/econcell
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=websinthe
+Group=websinthe
+WorkingDirectory=/home/websinthe/code/econcell
+Environment="PATH=/home/websinthe/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/websinthe/code/econcell"
+ExecStart=/usr/bin/python3 /home/websinthe/code/econcell/src/scheduler/start_scheduler.py foreground
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:/var/log/econcell/scheduler.log
+StandardError=append:/var/log/econcell/scheduler.error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/websinthe/code/econcell/src/econdata
+ReadWritePaths=/home/websinthe/code/econcell/data
+ReadWritePaths=/var/log/econcell
+
+[Install]
+WantedBy=multi-user.target

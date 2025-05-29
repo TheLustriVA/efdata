@@ -1,0 +1,15 @@
+/var/log/econcell/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 websinthe websinthe
+    sharedscripts
+    postrotate
+        # Send SIGUSR1 to reload logs without stopping services
+        systemctl kill -s USR1 econcell-api.service 2>/dev/null || true
+        systemctl kill -s USR1 econcell-scheduler.service 2>/dev/null || true
+    endscript
+}

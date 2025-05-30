@@ -55,9 +55,11 @@ python test_ai_system.py
 cd src/econdata
 scrapy crawl rba_tables
 scrapy crawl xrapi-currencies
+scrapy crawl abs_gfs
 
 # Database initialization
 psql -U postgres -f debug/rba_circular_flow_postgresql_ddl.sql
+psql -U postgres -d econdata -f src/econdata/sql/abs_taxation_schema.sql
 
 # Check database state
 psql -U websinthe -d econdata -f debug/check_database_state.sql
@@ -83,7 +85,10 @@ tail -f /var/log/econcell/api.log
 ### Core Components
 
 1. **Data Ingestion Layer** (`src/econdata/`)
-   - Scrapy spiders for RBA and exchange rate data
+   - Scrapy spiders for RBA, ABS, and exchange rate data
+   - **RBA Spider**: Weekly collection of economic indicators (CSV format)
+   - **ABS Spider**: Monthly collection of taxation data (XLSX format)
+   - **XR Spider**: Daily exchange rate updates (JSON API)
    - Pipelines for data validation and enrichment
    - PostgreSQL storage with dimensional modeling
 
@@ -95,8 +100,10 @@ tail -f /var/log/econcell/api.log
    - `MemoryManager`: GPU/RAM allocation and pooling
 
 3. **Database Schema**
-   - **rba_staging**: Raw CSV imports
+   - **rba_staging**: Raw CSV imports from RBA
+   - **abs_staging**: Government finance statistics from ABS
    - **rba_dimensions**: Time, components, sources reference data
+   - **abs_dimensions**: Tax types and government levels
    - **rba_facts**: Core economic measurements and flows
    - **rba_analytics**: Analytical views and functions
    - Implements circular flow components (Y, C, S, I, G, T, X, M)
@@ -108,14 +115,16 @@ tail -f /var/log/econcell/api.log
 
 5. **Scheduler** (`src/scheduler/`)
    - APScheduler-based automation
-   - Weekly RBA data collection
-   - Daily exchange rate updates
+   - Weekly RBA data collection (Saturdays at 1AM)
+   - Daily exchange rate updates (1AM)
+   - Monthly ABS taxation data (15th at 2AM)
 
 ### Key Configuration Files
 
 - **AI Configuration**: `config/ai_config.json` - Model specs, resource limits, and task routing
 - **Scrapy Settings**: `src/econdata/econdata/settings.py` - Spider configurations
 - **Scheduler Config**: `src/scheduler/config.py` - Collection schedules
+- **ABS Spider Config**: Built into spider with 300s timeout for large XLSX files
 
 ### Database Setup
 
@@ -141,7 +150,7 @@ The PostgreSQL schema is defined in `debug/rba_circular_flow_postgresql_ddl.sql`
 - **X** (Exports) - I1 table
 - **M** (Imports) - I1 table
 - **S** (Savings) - Derived from Y-C
-- **T** (Taxation) - ABS spider implemented (pending testing)
+- **T** (Taxation) - ABS spider implemented (monthly collection)
 
 #### In Progress
 - **G** (Government Spending) - Limited data in H1, needs ABS extension

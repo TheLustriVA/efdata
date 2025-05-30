@@ -39,6 +39,9 @@ python src/scheduler/start_scheduler.py test-rba
 python src/scheduler/start_scheduler.py test-xrapi
 python src/scheduler/start_scheduler.py test-abs
 
+# Dry-run test for ABS spider (safe testing)
+python src/scheduler/start_scheduler.py test-abs-dry
+
 # Start API server
 uvicorn frontend.api:app --reload --port 7001
 
@@ -57,12 +60,21 @@ scrapy crawl rba_tables
 scrapy crawl xrapi-currencies
 scrapy crawl abs_gfs
 
+# Run ABS spider in test mode
+scrapy crawl abs_gfs -a test_mode=True
+
 # Database initialization
 psql -U postgres -f debug/rba_circular_flow_postgresql_ddl.sql
 psql -U postgres -d econdata -f src/econdata/sql/abs_taxation_schema.sql
 
+# Create test schema for dry-run testing
+psql -U postgres -d econdata -f src/econdata/sql/abs_test_schema.sql
+
 # Check database state
 psql -U websinthe -d econdata -f debug/check_database_state.sql
+
+# Validate ABS test results
+psql -d econdata -c 'SELECT * FROM abs_staging_test.validate_test_results();'
 ```
 
 ### SystemD Service Management
@@ -140,6 +152,39 @@ The PostgreSQL schema is defined in `debug/rba_circular_flow_postgresql_ddl.sql`
 3. **ETL Pipeline**: Staging → Dimensions → Facts → Analytics flow
 4. **Task Priority System**: Economic indicators prioritized by importance
 5. **Circular Flow Model**: All data mapped to RBA circular flow components
+
+### Testing Strategies
+
+#### ABS Spider Dry-Run Testing
+The ABS spider includes a comprehensive test mode to safely validate functionality:
+
+1. **Test Mode Features**:
+   - Limited to 1 file download
+   - Maximum 10 items processed
+   - 5MB file size limit
+   - Uses test database schema (abs_staging_test)
+   - No impact on production data
+
+2. **Running Tests**:
+   ```bash
+   # Quick validation
+   python src/econdata/tests/test_abs_spider_simple.py
+   
+   # Dry-run with test database
+   python src/scheduler/start_scheduler.py test-abs-dry
+   
+   # Manual test mode
+   cd src/econdata && scrapy crawl abs_gfs -a test_mode=True
+   ```
+
+3. **Test Database Setup**:
+   ```bash
+   # Create test schema
+   psql -d econdata -f src/econdata/sql/abs_test_schema.sql
+   
+   # Clean test data between runs
+   psql -d econdata -c 'SELECT abs_staging_test.clean_test_data();'
+   ```
 
 ### Current Implementation Status
 

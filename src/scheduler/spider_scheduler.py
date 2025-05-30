@@ -74,12 +74,13 @@ class SpiderScheduler:
         finally:
             os.chdir(original_dir)
             
-    def run_spider(self, spider_name: str) -> None:
+    def run_spider(self, spider_name: str, spider_kwargs: dict = None) -> None:
         """
         Run a single spider with proper error handling and concurrency control.
         
         Args:
-            spider_name: Name of the spider to run ('rba_tables' or 'xrapi-currencies')
+            spider_name: Name of the spider to run ('rba_tables', 'xrapi-currencies', 'abs_gfs')
+            spider_kwargs: Additional arguments to pass to the spider
         """
         # Check if spider is already running
         if running_spiders.get(spider_name, False):
@@ -105,6 +106,11 @@ class SpiderScheduler:
                 
                 # Build the scrapy command
                 cmd = ['scrapy', 'crawl', spider_name]
+                
+                # Add spider arguments if provided
+                if spider_kwargs:
+                    for key, value in spider_kwargs.items():
+                        cmd.extend(['-a', f'{key}={value}'])
                 
                 # Set up environment with correct Python path
                 env = os.environ.copy()
@@ -226,18 +232,21 @@ class SpiderScheduler:
             self.scheduler.shutdown(wait=True)
         logger.info("Scheduler shutdown complete")
         
-    def run_spider_now(self, spider_name: str):
+    def run_spider_now(self, spider_name: str, spider_kwargs: dict = None):
         """
         Run a spider immediately (for testing purposes).
         
         Args:
             spider_name: Name of the spider to run
+            spider_kwargs: Additional arguments to pass to the spider
         """
         logger.info(f"Running spider '{spider_name}' immediately")
         if spider_name == 'rba_tables':
             self.run_rba_spider()
         elif spider_name == 'xrapi-currencies':
             self.run_xrapi_spider()
+        elif spider_name == 'abs_gfs':
+            self.run_spider(spider_name, spider_kwargs)
         else:
             logger.error(f"Unknown spider: {spider_name}")
             

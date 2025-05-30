@@ -144,7 +144,7 @@ class SchedulerDaemon:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Spider Scheduler Management')
-    parser.add_argument('command', choices=['start', 'stop', 'restart', 'status', 'foreground', 'test-rba', 'test-xrapi', 'test-abs'],
+    parser.add_argument('command', choices=['start', 'stop', 'restart', 'status', 'foreground', 'test-rba', 'test-xrapi', 'test-abs', 'test-abs-dry'],
                       help='Command to execute')
     parser.add_argument('--pidfile', help='PID file location')
     
@@ -178,6 +178,27 @@ def main():
         scheduler = SpiderScheduler()
         scheduler.run_spider_now('abs_gfs')
         print("Test command completed, exiting...")
+        sys.exit(0)
+    elif args.command == 'test-abs-dry':
+        print("Starting ABS spider in dry-run mode...")
+        print("- Limited to 1 file download")
+        print("- Maximum 10 items processed")
+        print("- 5MB file size limit")
+        print("- Using test database schema")
+        
+        # Set test mode environment variables
+        os.environ['ABS_TEST_MODE'] = 'true'
+        os.environ['SCRAPY_CLOSESPIDER_ITEMCOUNT'] = '10'
+        os.environ['SCRAPY_DOWNLOAD_MAXSIZE'] = '5242880'  # 5MB
+        
+        scheduler = SpiderScheduler()
+        # Pass test_mode argument to spider
+        scheduler.run_spider_now('abs_gfs', spider_kwargs={'test_mode': True})
+        
+        print("\nDry-run completed!")
+        print("Check results with:")
+        print("  psql -d econdata -c 'SELECT * FROM abs_staging_test.test_summary;'")
+        print("  psql -d econdata -c 'SELECT * FROM abs_staging_test.validate_test_results();'")
         sys.exit(0)
 
 

@@ -70,13 +70,26 @@ class ABSGFSSpider(scrapy.Spider):
     # Government levels
     GOV_LEVELS = ['Commonwealth', 'State', 'Local', 'Total']
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, test_mode=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.test_mode = test_mode
         self.downloads_dir = Path('downloads/abs_gfs')
         self.downloads_dir.mkdir(parents=True, exist_ok=True)
         
         # Track download progress for large files
         self.download_progress = {}
+        
+        # Test mode limits
+        if self.test_mode:
+            self.files_downloaded = 0
+            self.max_test_files = 1
+            self.custom_settings.update({
+                'CLOSESPIDER_ITEMCOUNT': 10,
+                'CLOSESPIDER_TIMEOUT': 60,
+                'DOWNLOAD_TIMEOUT': 60,
+                'DOWNLOAD_MAXSIZE': 5 * 1024 * 1024,  # 5MB
+            })
+            logger.info("Running in TEST MODE with limited downloads")
         
     def parse(self, response):
         """
@@ -128,6 +141,13 @@ class ABSGFSSpider(scrapy.Spider):
         """
         Download and save GFS XLSX file with progress tracking.
         """
+        # Check test mode file limit
+        if self.test_mode:
+            if self.files_downloaded >= self.max_test_files:
+                self.log(f"Test mode: Reached file limit of {self.max_test_files}")
+                return
+            self.files_downloaded += 1
+        
         # Extract filename from URL or headers
         filename = self._extract_filename(response)
         filepath = self.downloads_dir / filename

@@ -78,6 +78,14 @@ SPIDER_SCHEDULES = {
             'minute': 0,           # :00
         },
         'description': 'XR API Currencies Daily Spider - Daily at 01:00 UTC+10'
+    },
+    'abs_gfs': {
+        'cron': {
+            'day': 15,             # 15th of month
+            'hour': 2,             # 02:00
+            'minute': 0,           # :00
+        },
+        'description': 'ABS Government Finance Statistics Spider - Monthly on 15th at 02:00 UTC+10'
     }
 }
 

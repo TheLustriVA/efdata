@@ -37,6 +37,7 @@ python src/scheduler/start_scheduler.py foreground
 # Test individual spiders
 python src/scheduler/start_scheduler.py test-rba
 python src/scheduler/start_scheduler.py test-xrapi
+python src/scheduler/start_scheduler.py test-abs
 
 # Start API server
 uvicorn frontend.api:app --reload --port 7001
@@ -140,10 +141,10 @@ The PostgreSQL schema is defined in `debug/rba_circular_flow_postgresql_ddl.sql`
 - **X** (Exports) - I1 table
 - **M** (Imports) - I1 table
 - **S** (Savings) - Derived from Y-C
+- **T** (Taxation) - ABS spider implemented (pending testing)
 
-#### Missing Components
-- **T** (Taxation) - Requires ABS integration
-- **G** (Government Spending) - Limited data in H1
+#### In Progress
+- **G** (Government Spending) - Limited data in H1, needs ABS extension
 
 ### Git Workflow
 

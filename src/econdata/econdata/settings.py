@@ -112,8 +112,28 @@ DB_PASSWORD = os.getenv("PSQL_PW")
 ITEM_PIPELINES = {
     'econdata.pipelines.PostgresPipeline': 300,
     'econdata.pipelines_enhanced.EnhancedRBACircularFlowPipeline': 400,
+    # ABS Taxation pipelines
+    'econdata.pipelines.abs_taxation_pipeline.ABSTaxationValidationPipeline': 250,
+    'econdata.pipelines.abs_taxation_pipeline.ABSTaxationEnrichmentPipeline': 350,
+    'econdata.pipelines.abs_taxation_pipeline.ABSTaxationPipeline': 450,
 }
 
 # Other settings (keep as before)
 DOWNLOAD_DELAY = 1.5
 CONCURRENT_REQUESTS = 16
+
+# ABS-specific settings for large file downloads
+DOWNLOAD_TIMEOUT = 180  # 3 minutes default, spiders can override
+DOWNLOAD_MAXSIZE = 100 * 1024 * 1024  # 100MB max file size
+DOWNLOAD_WARNSIZE = 50 * 1024 * 1024  # Warn at 50MB
+
+# Retry configuration for ABS downloads
+RETRY_TIMES = 3
+RETRY_HTTP_CODES = [500, 502, 503, 504, 408, 429]
+
+# File download settings
+FILES_STORE = 'downloads/'
+FILES_EXPIRES = 30  # Keep downloaded files for 30 days
+
+# Enable pandas for Excel file processing
+PANDAS_ENABLED = True

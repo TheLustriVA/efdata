@@ -144,7 +144,7 @@ class SchedulerDaemon:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Spider Scheduler Management')
-    parser.add_argument('command', choices=['start', 'stop', 'restart', 'status', 'foreground', 'test-rba', 'test-xrapi'],
+    parser.add_argument('command', choices=['start', 'stop', 'restart', 'status', 'foreground', 'test-rba', 'test-xrapi', 'test-abs'],
                       help='Command to execute')
     parser.add_argument('--pidfile', help='PID file location')
     
@@ -172,6 +172,11 @@ def main():
     elif args.command == 'test-xrapi':
         scheduler = SpiderScheduler()
         scheduler.run_spider_now('xrapi-currencies')
+        print("Test command completed, exiting...")
+        sys.exit(0)
+    elif args.command == 'test-abs':
+        scheduler = SpiderScheduler()
+        scheduler.run_spider_now('abs_gfs')
         print("Test command completed, exiting...")
         sys.exit(0)
 

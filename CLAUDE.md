@@ -39,7 +39,10 @@ python src/scheduler/start_scheduler.py test-rba
 python src/scheduler/start_scheduler.py test-xrapi
 
 # Start API server
-uvicorn frontend.api:app --reload
+uvicorn frontend.api:app --reload --port 7001
+
+# Start API server using virtual environment
+/home/websinthe/code/econcell/.venv/bin/python -m uvicorn frontend.api:app --host 0.0.0.0 --port 7001
 
 # Test AI system
 python test_ai_system.py
@@ -51,6 +54,27 @@ python test_ai_system.py
 cd src/econdata
 scrapy crawl rba_tables
 scrapy crawl xrapi-currencies
+
+# Database initialization
+psql -U postgres -f debug/rba_circular_flow_postgresql_ddl.sql
+
+# Check database state
+psql -U websinthe -d econdata -f debug/check_database_state.sql
+```
+
+### SystemD Service Management
+```bash
+# Install services (requires sudo)
+sudo ./setup-services.sh
+
+# Service management
+sudo systemctl start econcell-api
+sudo systemctl start econcell-scheduler
+sudo systemctl status econcell-api
+
+# View logs
+sudo journalctl -u econcell-api -f
+tail -f /var/log/econcell/api.log
 ```
 
 ## Architecture Overview
@@ -106,3 +130,43 @@ The PostgreSQL schema is defined in `debug/rba_circular_flow_postgresql_ddl.sql`
 3. **ETL Pipeline**: Staging → Dimensions → Facts → Analytics flow
 4. **Task Priority System**: Economic indicators prioritized by importance
 5. **Circular Flow Model**: All data mapped to RBA circular flow components
+
+### Current Implementation Status
+
+#### Completed Components
+- **Y** (GDP/National Income) - H1 table
+- **C** (Consumption) - H2 table  
+- **I** (Investment) - H3 table
+- **X** (Exports) - I1 table
+- **M** (Imports) - I1 table
+- **S** (Savings) - Derived from Y-C
+
+#### Missing Components
+- **T** (Taxation) - Requires ABS integration
+- **G** (Government Spending) - Limited data in H1
+
+### Git Workflow
+
+```bash
+# Create feature branch
+git checkout -b feature/taxation-spider
+
+# Regular commits
+git add -A
+git commit -m "feat: implement ABS taxation data spider"
+
+# Push to origin
+git push -u origin feature/taxation-spider
+
+# Merge back to main when complete
+git checkout main
+git merge feature/taxation-spider
+git push origin main
+```
+
+### Security Notes
+
+- Never commit `.env` files or credentials
+- Use environment variables for all sensitive data
+- Rotate credentials regularly
+- Check `.gitignore` before committing

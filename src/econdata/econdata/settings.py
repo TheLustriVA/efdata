@@ -108,9 +108,9 @@ DB_NAME = os.getenv("PSQL_DB")
 DB_USER = os.getenv("PSQL_USER")
 DB_PASSWORD = os.getenv("PSQL_PW")
 
-# Pipeline configuration
+# Pipeline configuration - use __init__ for legacy pipelines to avoid package/module conflict
 ITEM_PIPELINES = {
-    'econdata.pipelines.PostgresPipeline': 300,
+    'econdata.pipelines_module.PostgresPipeline': 300,
     'econdata.pipelines_enhanced.EnhancedRBACircularFlowPipeline': 400,
     # ABS Taxation pipelines
     'econdata.pipelines.abs_taxation_pipeline.ABSTaxationValidationPipeline': 250,

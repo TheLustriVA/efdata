@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import traceback
 from collections import defaultdict
 
-from .pipelines import RBACircularFlowPipeline
+from .pipelines_module import RBACircularFlowPipeline
 
 # Configure detailed logging
 logging.basicConfig(

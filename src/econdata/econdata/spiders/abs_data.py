@@ -88,6 +88,10 @@ class ABSGFSSpider(scrapy.Spider):
                 'CLOSESPIDER_TIMEOUT': 60,
                 'DOWNLOAD_TIMEOUT': 60,
                 'DOWNLOAD_MAXSIZE': 5 * 1024 * 1024,  # 5MB
+                # Use test pipelines that write to test schema
+                'ITEM_PIPELINES': {
+                    'econdata.pipelines.abs_test_pipeline.ABSTestPipeline': 300,
+                }
             })
             logger.info("Running in TEST MODE with limited downloads")
         

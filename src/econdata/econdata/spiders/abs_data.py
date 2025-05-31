@@ -41,10 +41,9 @@ class ABSGFSSpider(scrapy.Spider):
     name = 'abs_gfs'
     
     # ABS GFS publication URLs
-    # Note: These URLs are examples and need to be updated with actual ABS URLs
     start_urls = [
-        # Main GFS page
-        'https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-australia',
+        # Latest GFS annual release page with XLSX files
+        'https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/latest-release',
     ]
     
     # Custom settings for handling large files
@@ -163,7 +162,8 @@ class ABSGFSSpider(scrapy.Spider):
             
             if expected_size > 0 and actual_size == expected_size:
                 self.log(f"File {filename} already downloaded completely")
-                return self.parse_gfs_file(filepath)
+                yield from self.parse_gfs_file(filepath)
+                return
         
         # Save the file
         try:
@@ -171,7 +171,7 @@ class ABSGFSSpider(scrapy.Spider):
             self.log(f"Downloaded GFS file: {filename} ({len(response.body):,} bytes)")
             
             # Parse the downloaded file
-            return self.parse_gfs_file(filepath)
+            yield from self.parse_gfs_file(filepath)
             
         except Exception as e:
             self.log(f"Error downloading {filename}: {str(e)}", level=logging.ERROR)
@@ -244,23 +244,23 @@ class ABSGFSSpider(scrapy.Spider):
         """Identify sheets containing taxation data."""
         tax_sheets = []
         
-        tax_keywords = [
-            'tax', 'revenue', 'commonwealth', 'state', 
-            'government', 'income', 'gst', 'excise'
-        ]
+        # Skip contents/index sheets
+        skip_sheets = ['contents', 'index', 'glossary', 'notes']
         
         for sheet in excel_file.sheet_names:
             sheet_lower = sheet.lower()
-            if any(keyword in sheet_lower for keyword in tax_keywords):
-                tax_sheets.append(sheet)
-        
-        # If no obvious tax sheets, check first few rows of each sheet
-        if not tax_sheets:
-            for sheet in excel_file.sheet_names[:5]:  # Check first 5 sheets
+            
+            # Skip non-data sheets
+            if any(skip in sheet_lower for skip in skip_sheets):
+                continue
+                
+            # For ABS GFS, Table sheets usually contain the data
+            if 'table' in sheet_lower:
+                # Check if it contains tax data
                 try:
                     df = pd.read_excel(excel_file, sheet_name=sheet, nrows=20)
-                    content = ' '.join(df.astype(str).values.flatten())
-                    if any(keyword in content.lower() for keyword in tax_keywords):
+                    content = ' '.join(df.astype(str).values.flatten()).lower()
+                    if 'taxation revenue' in content or 'tax' in content:
                         tax_sheets.append(sheet)
                 except:
                     continue
@@ -269,55 +269,79 @@ class ABSGFSSpider(scrapy.Spider):
     
     def _extract_tax_data(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
         """
-        Extract taxation data from a dataframe with complex formatting.
+        Extract taxation data from ABS GFS format.
         
-        This handles:
-        - Merged cells in headers
-        - Multiple header rows
-        - Footnotes and metadata
-        - Various data layouts
+        Simplified to handle the actual ABS format:
+        - Years in row 4
+        - Data values starting around row 7
+        - First column contains row labels
         """
+        import re
         tax_data = []
         
-        # Find the data region using heuristics
-        data_start_row = self._find_data_start(df)
-        if data_start_row is None:
+        # Extract government level from sheet name or table title
+        gov_level = self._extract_government_level(df, sheet_name)
+        
+        # Find year row (typically row 4, but search for it)
+        year_row_idx = None
+        years = []
+        year_cols = []
+        
+        for i in range(min(10, len(df))):
+            row = df.iloc[i]
+            # Check if this row contains years (format: YYYY-YY)
+            year_count = 0
+            for j, val in enumerate(row):
+                if pd.notna(val) and re.match(r'^\d{4}-\d{2}$', str(val).strip()):
+                    year_count += 1
+                    if year_row_idx is None:
+                        year_row_idx = i
+                        years.append(str(val).strip())
+                        year_cols.append(j)
+                    elif year_row_idx == i:
+                        years.append(str(val).strip())
+                        year_cols.append(j)
+            
+            if year_count >= 3:  # Found year row
+                break
+        
+        if not years:
+            self.log(f"No years found in {sheet_name}", level=logging.WARNING)
             return tax_data
         
-        # Extract headers and identify columns
-        headers = self._extract_headers(df, data_start_row)
-        
-        # Find year/period columns
-        period_cols = self._identify_period_columns(df, headers)
-        
-        # Find taxation type rows
-        tax_rows = self._identify_tax_rows(df, data_start_row)
-        
-        # Extract data for each tax type and period
-        for tax_row_info in tax_rows:
-            row_idx = tax_row_info['row']
-            tax_type = tax_row_info['type']
-            category = tax_row_info['category']
-            gov_level = tax_row_info.get('gov_level', 'Total')
+        # Find rows containing taxation data
+        for row_idx in range(year_row_idx + 1, min(len(df), year_row_idx + 50)):
+            row_label = str(df.iloc[row_idx, 0]).strip() if pd.notna(df.iloc[row_idx, 0]) else ""
             
-            for period_col in period_cols:
-                try:
-                    value = df.iloc[row_idx, period_col['col']]
-                    
-                    # Clean and validate the value
-                    amount = self._clean_numeric_value(value)
-                    if amount is not None:
-                        tax_data.append({
-                            'period': period_col['period'],
-                            'tax_type': tax_type,
-                            'category': category,
-                            'gov_level': gov_level,
-                            'amount': amount,
-                            'unit': 'AUD millions',  # ABS typically uses millions
-                            'quality': 'final' if not sheet_name.lower().endswith('preliminary') else 'preliminary'
-                        })
-                except:
-                    continue
+            # Skip empty rows or headers
+            if not row_label or row_label.upper() in ['GFS REVENUE', 'GFS EXPENSES', 'NET OPERATING BALANCE']:
+                continue
+            
+            # Check if this row contains tax-related data
+            if 'tax' in row_label.lower() or row_label.lower() in ['gst', 'excise', 'customs', 'levy']:
+                # Extract values for each year
+                for j, (year, col_idx) in enumerate(zip(years, year_cols)):
+                    try:
+                        value = df.iloc[row_idx, col_idx]
+                        amount = self._clean_numeric_value(value)
+                        
+                        if amount is not None:
+                            # Determine tax category
+                            category = self._categorize_tax_type(row_label)
+                            
+                            tax_data.append({
+                                'period': self._convert_financial_year_to_date(year),
+                                'tax_type': row_label,
+                                'category': category,
+                                'gov_level': gov_level,
+                                'amount': amount,
+                                'unit': 'AUD millions',
+                                'quality': 'final'
+                            })
+                    except Exception as e:
+                        self.log(f"Error extracting value at row {row_idx}, col {col_idx}: {e}", 
+                                level=logging.DEBUG)
+                        continue
         
         # If annual data, create quarterly estimates
         if tax_data and self._is_annual_data(tax_data):
@@ -403,6 +427,74 @@ class ABSGFSSpider(scrapy.Spider):
         
         return tax_rows
     
+    def _extract_government_level(self, df: pd.DataFrame, sheet_name: str) -> str:
+        """Extract government level from sheet data or name."""
+        # Check first few rows for government level indicators
+        for i in range(min(5, len(df))):
+            for j in range(min(3, len(df.columns))):
+                cell = str(df.iloc[i, j]) if pd.notna(df.iloc[i, j]) else ""
+                if 'commonwealth' in cell.lower():
+                    return 'Commonwealth'
+                elif 'state' in cell.lower():
+                    # Try to extract specific state
+                    if 'new south wales' in cell.lower():
+                        return 'NSW State'
+                    elif 'victoria' in cell.lower():
+                        return 'VIC State'
+                    elif 'queensland' in cell.lower():
+                        return 'QLD State'
+                    elif 'south australia' in cell.lower():
+                        return 'SA State'
+                    elif 'western australia' in cell.lower():
+                        return 'WA State'
+                    elif 'tasmania' in cell.lower():
+                        return 'TAS State'
+                    elif 'northern territory' in cell.lower():
+                        return 'NT Territory'
+                    elif 'australian capital territory' in cell.lower():
+                        return 'ACT Territory'
+                    else:
+                        return 'State'
+                elif 'local' in cell.lower():
+                    return 'Local'
+        
+        # Default based on sheet name patterns
+        if 'commonwealth' in sheet_name.lower():
+            return 'Commonwealth'
+        elif 'state' in sheet_name.lower():
+            return 'State'
+        elif 'local' in sheet_name.lower():
+            return 'Local'
+        else:
+            return 'Total'
+    
+    def _categorize_tax_type(self, tax_label: str) -> str:
+        """Categorize tax type based on label."""
+        label_lower = tax_label.lower()
+        
+        if 'income' in label_lower or 'company' in label_lower or 'personal' in label_lower:
+            return 'Income Tax'
+        elif 'gst' in label_lower or 'goods and services' in label_lower:
+            return 'GST'
+        elif 'payroll' in label_lower:
+            return 'Payroll Tax'
+        elif 'excise' in label_lower:
+            return 'Excise'
+        elif 'customs' in label_lower:
+            return 'Customs Duty'
+        elif 'land' in label_lower:
+            return 'Land Tax'
+        elif 'stamp' in label_lower:
+            return 'Stamp Duty'
+        elif 'gambling' in label_lower or 'gaming' in label_lower:
+            return 'Gambling Tax'
+        elif 'motor' in label_lower or 'vehicle' in label_lower:
+            return 'Motor Vehicle Tax'
+        elif 'total' in label_lower and 'tax' in label_lower:
+            return 'Total Taxation'
+        else:
+            return 'Other Tax'
+    
     def _clean_numeric_value(self, value) -> Optional[float]:
         """Clean and convert value to numeric."""
         if pd.isna(value):
@@ -469,6 +561,20 @@ class ABSGFSSpider(scrapy.Spider):
             return gap_days > 300
         except:
             return True
+    
+    def _convert_financial_year_to_date(self, fy_string: str) -> str:
+        """Convert financial year string (e.g., '2014-15') to end date."""
+        try:
+            # Extract the start year
+            if '-' in fy_string:
+                start_year = int(fy_string.split('-')[0])
+                # Financial year ends June 30
+                return f"{start_year + 1}-06-30"
+            else:
+                # Already a date
+                return fy_string
+        except:
+            return fy_string
     
     def _interpolate_to_quarterly(self, annual_data: List[Dict]) -> List[Dict]:
         """

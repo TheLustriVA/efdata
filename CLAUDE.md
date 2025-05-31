@@ -189,16 +189,38 @@ The ABS spider includes a comprehensive test mode to safely validate functionali
 ### Current Implementation Status
 
 #### Completed Components
-- **Y** (GDP/National Income) - H1 table
-- **C** (Consumption) - H2 table  
-- **I** (Investment) - H3 table
-- **X** (Exports) - I1 table
-- **M** (Imports) - I1 table
-- **S** (Savings) - Derived from Y-C
-- **T** (Taxation) - ABS spider implemented (monthly collection)
+- **Y** (GDP/National Income) - H1 table ✅
+- **C** (Consumption) - H2 table ✅
+- **I** (Investment) - H3 table ✅
+- **X** (Exports) - I1 table ✅
+- **M** (Imports) - I1 table ✅
+- **S** (Savings) - Derived from Y-C ✅
+- **T** (Taxation) - ABS spider implemented and operational ✅
+  - Downloads 81+ XLSX files from ABS GFS
+  - Parses taxation revenue by government level
+  - Creates quarterly estimates from annual data
+  - 2,124+ records loaded covering Commonwealth, States, and Territories
 
 #### In Progress
-- **G** (Government Spending) - Limited data in H1, needs ABS extension
+- **G** (Government Spending) - Limited data in H1, needs ABS GFS expenditure tables
+
+### ABS Spider Implementation Notes
+
+#### Key Implementation Details
+1. **URL**: https://www.abs.gov.au/statistics/economy/government/government-finance-statistics-annual/latest-release
+2. **Data Format**: XLSX files with complex multi-sheet structure
+3. **Dependencies**: Requires `openpyxl` for XLSX parsing
+4. **Parsing Logic**:
+   - Skips "Contents" sheets
+   - Finds year headers (format: YYYY-YY)
+   - Extracts "Taxation revenue" rows
+   - Converts financial years to dates (e.g., 2014-15 → 2015-06-30)
+   - Creates quarterly interpolations from annual data
+
+#### Common Issues and Solutions
+- **Missing openpyxl**: Install with `pip install openpyxl`
+- **Validation errors**: Check pipeline validation config for valid government levels and tax categories
+- **No items parsed**: Ensure sheet detection looks for "Table" prefix and tax keywords
 
 ### Git Workflow
 

@@ -41,11 +41,15 @@ class ABSTaxationPipeline:
             'max_amount': 1000000000,  # 1 trillion max for total tax
             'valid_gov_levels': [
                 'Commonwealth', 'State', 'Local', 'Total',
-                'All Levels of Government', 'State Total'
+                'All Levels of Government', 'State Total',
+                'NSW State', 'VIC State', 'QLD State', 'SA State',
+                'WA State', 'TAS State', 'NT Territory', 'ACT Territory'
             ],
             'valid_categories': [
-                'income_tax', 'gst', 'excise', 'payroll', 
-                'property', 'other'
+                'Income Tax', 'GST', 'Excise', 'Payroll Tax', 
+                'Property Tax', 'Land Tax', 'Stamp Duty', 'Customs Duty',
+                'Motor Vehicle Tax', 'Gambling Tax', 'Total Taxation',
+                'Other Tax'
             ]
         }
     

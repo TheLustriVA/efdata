@@ -264,6 +264,44 @@ Completed comprehensive audit comparing RBA requirements to implementation:
 
 See `/circular_flow_audit_report.md` and `/circular_flow_requirements_matrix.md` for full details.
 
+### Overnight Work Protocol
+
+For extended periods when user is unavailable (sleeping, etc.), use this approach to make progress without requiring real-time permissions:
+
+#### Phase 1: Analysis & Planning (No Permissions Needed)
+- Read and analyze all relevant files
+- Run SQL SELECT queries to understand data structure
+- Review existing code implementations
+- Research best practices and identify patterns
+
+#### Phase 2: Solution Design (No Permissions Needed)
+- Draft all code changes needed
+- Design database queries and schema updates
+- Plan step-by-step implementation approach
+- Identify potential issues and alternatives
+
+#### Phase 3: Morning Checklist Creation
+Create a prioritized list of quick approvals needed:
+1. File edits (with exact changes specified)
+2. Commands to run (with expected outcomes)
+3. New files to create (with full content ready)
+4. Database operations (with validation queries)
+
+#### Benefits
+- User can quickly approve 5-10 items in a few minutes
+- All changes are pre-reviewed and documented
+- No time wasted figuring out what to do next
+- Rapid implementation once approved
+
+#### Example Morning Checklist Format
+```
+□ Edit spider.py lines 45-67 (add government expenditure parsing)
+□ Run: scrapy crawl abs_gfs -s CLOSESPIDER_ITEMCOUNT=50
+□ Create: government_expenditure_pipeline.py (98 lines ready)
+□ SQL: INSERT taxation records into facts table (2,124 records)
+□ Test: equilibrium validation query
+```
+
 ### ABS Spider Implementation Notes
 
 #### Key Implementation Details

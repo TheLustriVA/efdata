@@ -191,7 +191,7 @@ class ABSGFSSpider(scrapy.Spider):
             self.log(f"Error downloading {filename}: {str(e)}", level=logging.ERROR)
             # Retry with smaller chunks if file is too large
             if len(response.body) > 50 * 1024 * 1024:  # 50MB
-                return self._download_with_chunks(response)
+                yield from self._download_with_chunks(response)
     
     def _extract_filename(self, response) -> str:
         """Extract filename from response headers or URL."""
@@ -904,3 +904,4 @@ class ABSGFSSpider(scrapy.Spider):
         # 1. Use HTTP Range headers to download in chunks
         # 2. Reassemble the file on disk
         # 3. Verify integrity with checksums
+        return []  # Return empty list for now

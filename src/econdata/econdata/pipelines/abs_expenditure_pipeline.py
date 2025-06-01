@@ -51,8 +51,8 @@ class ABSExpenditurePipeline(BasePipeline):
     
     def process_item(self, item: Dict[str, Any], spider) -> Dict[str, Any]:
         """Process expenditure data item from spider."""
-        # Skip if not expenditure data
-        if item.get('data_type') != 'expenditure':
+        # Skip if not expenditure data from ABS spider
+        if item.get('spider') != 'abs_gfs' or item.get('data_type') != 'expenditure':
             return item
         
         try:
@@ -92,17 +92,24 @@ class ABSExpenditurePipeline(BasePipeline):
         ]
         
         for field in required_fields:
-            if not item.get(field):
-                errors.append(f"Missing required field: {field}")
+            if field == 'amount':
+                # Amount can be 0, so check for None specifically
+                if item.get(field) is None:
+                    errors.append(f"Missing required field: {field}")
+            else:
+                if not item.get(field):
+                    errors.append(f"Missing required field: {field}")
         
-        # Validate amount
-        try:
-            amount = float(item.get('amount', 0))
-            if amount < 0 and 'refund' not in item.get('expenditure_type', '').lower():
-                logger.warning(f"Negative expenditure amount: {amount} for "
-                             f"{item.get('expenditure_type')}")
-        except (TypeError, ValueError):
-            errors.append(f"Invalid amount: {item.get('amount')}")
+        # Validate amount (skip if already caught as missing)
+        amount_value = item.get('amount')
+        if amount_value is not None:
+            try:
+                amount = float(amount_value)
+                if amount < 0 and 'refund' not in item.get('expenditure_type', '').lower():
+                    logger.warning(f"Negative expenditure amount: {amount} for "
+                                 f"{item.get('expenditure_type')}")
+            except (TypeError, ValueError):
+                errors.append(f"Invalid amount: {amount_value}")
         
         # Validate government level
         gov_level = item.get('level_of_government', '')

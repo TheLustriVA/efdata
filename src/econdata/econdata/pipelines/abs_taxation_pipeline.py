@@ -102,8 +102,8 @@ class ABSTaxationPipeline:
         """Process and validate each taxation item."""
         adapter = ItemAdapter(item)
         
-        # Only process items from ABS spider
-        if adapter.get('spider') != 'abs_gfs':
+        # Only process taxation items from ABS spider
+        if adapter.get('spider') != 'abs_gfs' or adapter.get('data_type') != 'taxation':
             return item
         
         self.stats['items_processed'] += 1
@@ -155,8 +155,13 @@ class ABSTaxationPipeline:
         ]
         
         for field in required_fields:
-            if not adapter.get(field):
-                errors.append(f"Missing required field: {field}")
+            if field == 'amount':
+                # Amount can be 0, so check for None specifically
+                if adapter.get(field) is None:
+                    errors.append(f"Missing required field: {field}")
+            else:
+                if not adapter.get(field):
+                    errors.append(f"Missing required field: {field}")
         
         # Validate amount
         amount = adapter.get('amount')

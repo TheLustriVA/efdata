@@ -1,0 +1,79 @@
+{
+  "report_type": "staging_data_validation",
+  "timestamp": "2025-06-01T20:13:16.256847",
+  "stats": {
+    "tables_validated": 0,
+    "records_validated": 27624,
+    "issues_found": 2,
+    "anomalies_detected": 0
+  },
+  "issues": {
+    "CRITICAL": [],
+    "WARNING": [],
+    "INFO": [
+      {
+        "timestamp": "2025-06-01T20:13:15.841945",
+        "message": "government_expenditure: 99 records for Local on 2024-09-30 - verify if expected"
+      },
+      {
+        "timestamp": "2025-06-01T20:13:15.842017",
+        "message": "government_expenditure: 99 records for Local on 2024-06-30 - verify if expected"
+      }
+    ],
+    "NOTERROR": []
+  },
+  "validation_results": {
+    "government_expenditure_precision": {
+      "whole_number_pct": 24.152876280535853,
+      "decimal_distribution": {
+        "2": 25380
+      },
+      "total_records": 25380
+    },
+    "government_finance_statistics_precision": {
+      "whole_number_pct": 30.303030303030305,
+      "decimal_distribution": {
+        "2": 2244
+      },
+      "total_records": 2244
+    }
+  },
+  "statistical_summary": {
+    "expenditure": {
+      "total_amount": 75941094.30000001,
+      "mean_amount": 2992.162895981088,
+      "median_amount": 230.23000000000002,
+      "std_amount": 14570.650774879356,
+      "by_government": {
+        "ACT Territory": 196288.25,
+        "Commonwealth": 22261495.41,
+        "Local": 1727338.42,
+        "NSW State": 3474989.38,
+        "NT Territory": 232432.37,
+        "QLD State": 2588298.44,
+        "SA State": 789790.4,
+        "State": 15118502.56,
+        "TAS State": 150095.28,
+        "Total": 24637872.44,
+        "VIC State": 2868615.67,
+        "WA State": 1895375.68
+      },
+      "by_category": {
+        "capital_expenditure": 28603.0,
+        "defence": 793205.0,
+        "economic_affairs": 3002173.0,
+        "education": 8835980.42,
+        "environment": 472264.0,
+        "general_services": 3906236.0,
+        "health": 6452600.92,
+        "housing": 368724.0,
+        "interest_payments": 514295.0,
+        "other_expenditure": 17688016.0,
+        "public_order": 1737450.0,
+        "recreation": 443739.0,
+        "social_protection": 4924097.96,
+        "total_expenditure": 26773710.0
+      }
+    }
+  }
+}

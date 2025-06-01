@@ -1,0 +1,80 @@
+{
+  "report_type": "taxation_etl_validation",
+  "timestamp": "2025-06-01T20:21:53.917632",
+  "stats": {
+    "total_records": 2244,
+    "valid_records": 2244,
+    "invalid_records": 0,
+    "validation_passed": true
+  },
+  "validation_results": {
+    "pre_checks": {},
+    "mapping_validation": {
+      "tax_categories": {
+        "total_categories": 1,
+        "categories": {
+          "Other Tax": 2244
+        }
+      },
+      "date_mappings": {
+        "missing_count": 0,
+        "sample_missing": []
+      },
+      "government_levels": {
+        "unmapped_count": 0,
+        "unmapped_levels": {}
+      }
+    },
+    "data_quality": {
+      "amount_stats": {
+        "min": 0.0,
+        "max": 200429.0,
+        "mean": 19315.100713012478,
+        "total": 43343086.0,
+        "negative_count": 0
+      },
+      "duplicates": {
+        "staging_duplicates": {
+          "groups": 400,
+          "records": "2244"
+        },
+        "existing_facts": {
+          "count": 0,
+          "date_range": null
+        }
+      },
+      "completeness": {
+        "total_records": 2244,
+        "government_levels": 10,
+        "time_periods": 40,
+        "date_range": "2015-06-30 to 2025-03-30",
+        "total_amount": 43343086.0
+      }
+    },
+    "constraint_checks": {
+      "abs_source": {
+        "source_key": 10,
+        "rba_table_code": "ABS",
+        "data_provider": "ABS",
+        "table_description": "Australian Bureau of Statistics - Government Finance Statistics"
+      },
+      "measurements": {
+        "Currency": {
+          "key": 18,
+          "description": "$ million"
+        },
+        "$m": {
+          "key": 20,
+          "description": "Millions of dollars"
+        }
+      }
+    }
+  },
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Found 400 groups with multiple records (max 16 per group)"
+    }
+  ],
+  "etl_ready": true
+}

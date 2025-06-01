@@ -1,0 +1,70 @@
+{
+  "report_type": "database_integrity_check",
+  "timestamp": "2025-06-01T20:07:47.888003",
+  "stats": {
+    "tables_checked": 0,
+    "records_checked": 27624,
+    "issues_found": 13
+  },
+  "issues": {
+    "CRITICAL": [
+      {
+        "timestamp": "2025-06-01T20:07:47.774081",
+        "message": "Found expenditure fields in taxation table: ['cofog_code']"
+      }
+    ],
+    "WARNING": [
+      {
+        "timestamp": "2025-06-01T20:07:47.883347",
+        "message": "Government level 'ACT Territory' not found in dimension table (1400 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883455",
+        "message": "Government level 'Commonwealth' not found in dimension table (2048 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883470",
+        "message": "Government level 'Local' not found in dimension table (3564 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883479",
+        "message": "Government level 'NSW State' not found in dimension table (2160 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883486",
+        "message": "Government level 'NT Territory' not found in dimension table (2160 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883495",
+        "message": "Government level 'QLD State' not found in dimension table (2080 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883502",
+        "message": "Government level 'SA State' not found in dimension table (2160 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883509",
+        "message": "Government level 'State' not found in dimension table (2964 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883515",
+        "message": "Government level 'TAS State' not found in dimension table (1160 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883529",
+        "message": "Government level 'VIC State' not found in dimension table (2160 records)"
+      },
+      {
+        "timestamp": "2025-06-01T20:07:47.883536",
+        "message": "Government level 'WA State' not found in dimension table (2160 records)"
+      }
+    ],
+    "INFO": [],
+    "NOTERROR": [
+      {
+        "timestamp": "2025-06-01T20:07:47.883521",
+        "message": "Government level 'Total' not in dimension table (1364 records) - This is expected as 'Total' represents aggregated data across all levels"
+      }
+    ]
+  }
+}

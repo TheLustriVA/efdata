@@ -66,6 +66,20 @@ class ABSGFSSpider(scrapy.Spider):
         'other': ['Other taxes', 'Other taxation revenue']
     }
     
+    # Expenditure categories (COFOG - Classification of Functions of Government)
+    EXPENDITURE_CATEGORIES = {
+        'general_services': ['General public services', 'General services'],
+        'defence': ['Defence', 'Defence affairs'],
+        'public_order': ['Public order and safety', 'Police', 'Fire protection', 'Law courts'],
+        'economic_affairs': ['Economic affairs', 'Transport', 'Communication'],
+        'environment': ['Environmental protection', 'Waste management'],
+        'housing': ['Housing and community amenities', 'Housing', 'Community development'],
+        'health': ['Health', 'Hospital services', 'Medical services'],
+        'recreation': ['Recreation, culture and religion', 'Recreation', 'Culture'],
+        'education': ['Education', 'Primary education', 'Secondary education', 'Tertiary education'],
+        'social_protection': ['Social protection', 'Social security', 'Welfare']
+    }
+    
     # Government levels
     GOV_LEVELS = ['Commonwealth', 'State', 'Local', 'Total']
     
@@ -200,7 +214,7 @@ class ABSGFSSpider(scrapy.Spider):
     
     def parse_gfs_file(self, filepath: Path):
         """
-        Parse the downloaded GFS XLSX file and extract taxation data.
+        Parse the downloaded GFS XLSX file and extract taxation and expenditure data.
         """
         try:
             # Read Excel file with all sheets
@@ -209,6 +223,10 @@ class ABSGFSSpider(scrapy.Spider):
             # Find sheets containing taxation data
             tax_sheets = self._find_tax_sheets(excel_file)
             
+            # Find sheets containing expenditure data
+            exp_sheets = self._find_expenditure_sheets(excel_file)
+            
+            # Process taxation sheets
             for sheet_name in tax_sheets:
                 df = pd.read_excel(excel_file, sheet_name=sheet_name, header=None)
                 
@@ -221,10 +239,38 @@ class ABSGFSSpider(scrapy.Spider):
                         'spider': self.name,
                         'source_file': filepath.name,
                         'sheet_name': sheet_name,
+                        'data_type': 'taxation',
                         'reference_period': item['period'],
                         'level_of_government': item['gov_level'],
                         'revenue_type': item['tax_type'],
                         'tax_category': item['category'],
+                        'amount': item['amount'],
+                        'unit': item.get('unit', 'AUD millions'),
+                        'seasonally_adjusted': item.get('sa', False),
+                        'data_quality': item.get('quality', 'final'),
+                        'extraction_timestamp': datetime.utcnow().isoformat(),
+                        'file_checksum': self._calculate_checksum(filepath)
+                    }
+            
+            # Process expenditure sheets
+            for sheet_name in exp_sheets:
+                df = pd.read_excel(excel_file, sheet_name=sheet_name, header=None)
+                
+                # Process the sheet to extract expenditure data
+                exp_data = self._extract_expenditure_data(df, sheet_name)
+                
+                # Yield items for pipeline processing
+                for item in exp_data:
+                    yield {
+                        'spider': self.name,
+                        'source_file': filepath.name,
+                        'sheet_name': sheet_name,
+                        'data_type': 'expenditure',
+                        'reference_period': item['period'],
+                        'level_of_government': item['gov_level'],
+                        'expenditure_type': item['exp_type'],
+                        'expenditure_category': item['category'],
+                        'cofog_code': item.get('cofog_code'),
                         'amount': item['amount'],
                         'unit': item.get('unit', 'AUD millions'),
                         'seasonally_adjusted': item.get('sa', False),
@@ -266,6 +312,40 @@ class ABSGFSSpider(scrapy.Spider):
                     continue
         
         return tax_sheets
+    
+    def _find_expenditure_sheets(self, excel_file: pd.ExcelFile) -> List[str]:
+        """Identify sheets containing expenditure data."""
+        exp_sheets = []
+        
+        # Skip contents/index sheets
+        skip_sheets = ['contents', 'index', 'glossary', 'notes']
+        
+        for sheet in excel_file.sheet_names:
+            sheet_lower = sheet.lower()
+            
+            # Skip non-data sheets
+            if any(skip in sheet_lower for skip in skip_sheets):
+                continue
+                
+            # For ABS GFS, Table sheets usually contain the data
+            if 'table' in sheet_lower:
+                # Check if it contains expenditure data
+                try:
+                    df = pd.read_excel(excel_file, sheet_name=sheet, nrows=20)
+                    content = ' '.join(df.astype(str).values.flatten()).lower()
+                    
+                    # Look for expenditure indicators
+                    exp_indicators = ['expenses', 'expenditure', 'spending', 'outlays', 
+                                     'gfs expenses', 'total expenses', 'cofog']
+                    
+                    if any(indicator in content for indicator in exp_indicators):
+                        # Exclude if it's primarily a revenue sheet
+                        if 'taxation revenue' not in content:
+                            exp_sheets.append(sheet)
+                except:
+                    continue
+        
+        return exp_sheets
     
     def _extract_tax_data(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
         """
@@ -561,6 +641,180 @@ class ABSGFSSpider(scrapy.Spider):
             return gap_days > 300
         except:
             return True
+    
+    def _extract_expenditure_data(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
+        """
+        Extract expenditure data from ABS GFS format.
+        """
+        import re
+        exp_data = []
+        
+        # Extract government level from sheet name or table title
+        gov_level = self._extract_government_level(df, sheet_name)
+        
+        # Find year row (typically row 4, but search for it)
+        year_row_idx = None
+        years = []
+        year_cols = []
+        
+        for i in range(min(10, len(df))):
+            row = df.iloc[i]
+            # Check if this row contains years (format: YYYY-YY)
+            year_count = 0
+            for j, val in enumerate(row):
+                if pd.notna(val) and re.match(r'^\d{4}-\d{2}$', str(val).strip()):
+                    year_count += 1
+                    if year_row_idx is None:
+                        year_row_idx = i
+                        years.append(str(val).strip())
+                        year_cols.append(j)
+                    elif year_row_idx == i:
+                        years.append(str(val).strip())
+                        year_cols.append(j)
+            
+            if year_count >= 3:  # Found year row
+                break
+        
+        if not years:
+            self.log(f"No years found in {sheet_name}", level=logging.WARNING)
+            return exp_data
+        
+        # Find rows containing expenditure data
+        for row_idx in range(year_row_idx + 1, min(len(df), year_row_idx + 100)):
+            row_label = str(df.iloc[row_idx, 0]).strip() if pd.notna(df.iloc[row_idx, 0]) else ""
+            
+            # Skip empty rows or revenue headers
+            if not row_label or 'revenue' in row_label.lower():
+                continue
+            
+            # Check if this row contains expenditure-related data
+            exp_keywords = ['expense', 'expenditure', 'spending', 'outlays']
+            cofog_keywords = list(self.EXPENDITURE_CATEGORIES.keys())
+            
+            # Check for direct expenditure keywords or COFOG categories
+            is_expenditure = False
+            category = 'other'
+            
+            # First check for COFOG categories
+            for cat_key, patterns in self.EXPENDITURE_CATEGORIES.items():
+                if any(pattern.lower() in row_label.lower() for pattern in patterns):
+                    is_expenditure = True
+                    category = cat_key
+                    break
+            
+            # If not found, check for general expenditure keywords
+            if not is_expenditure and any(kw in row_label.lower() for kw in exp_keywords):
+                is_expenditure = True
+                category = self._categorize_expenditure_type(row_label)
+            
+            if is_expenditure:
+                # Extract COFOG code if present (format: nn.n or nn)
+                cofog_match = re.search(r'\b(\d{1,2}(?:\.\d)?)\b', row_label)
+                cofog_code = cofog_match.group(1) if cofog_match else None
+                
+                # Extract values for each year
+                for j, (year, col_idx) in enumerate(zip(years, year_cols)):
+                    try:
+                        value = df.iloc[row_idx, col_idx]
+                        amount = self._clean_numeric_value(value)
+                        
+                        if amount is not None:
+                            exp_data.append({
+                                'period': self._convert_financial_year_to_date(year),
+                                'exp_type': row_label,
+                                'category': category,
+                                'cofog_code': cofog_code,
+                                'gov_level': gov_level,
+                                'amount': amount,
+                                'unit': 'AUD millions',
+                                'quality': 'final'
+                            })
+                    except Exception as e:
+                        self.log(f"Error extracting value at row {row_idx}, col {col_idx}: {e}", 
+                                level=logging.DEBUG)
+                        continue
+        
+        # If annual data, create quarterly estimates
+        if exp_data and self._is_annual_data(exp_data):
+            exp_data = self._interpolate_expenditure_to_quarterly(exp_data)
+        
+        return exp_data
+    
+    def _categorize_expenditure_type(self, exp_label: str) -> str:
+        """Categorize expenditure type based on label."""
+        label_lower = exp_label.lower()
+        
+        # Check against EXPENDITURE_CATEGORIES
+        for category, patterns in self.EXPENDITURE_CATEGORIES.items():
+            if any(pattern.lower() in label_lower for pattern in patterns):
+                return category
+        
+        # Additional categorization logic
+        if 'salaries' in label_lower or 'wages' in label_lower:
+            return 'employee_expenses'
+        elif 'grants' in label_lower:
+            return 'grants_subsidies'
+        elif 'interest' in label_lower:
+            return 'interest_payments'
+        elif 'capital' in label_lower:
+            return 'capital_expenditure'
+        elif 'total' in label_lower and 'expense' in label_lower:
+            return 'total_expenditure'
+        else:
+            return 'other_expenditure'
+    
+    def _interpolate_expenditure_to_quarterly(self, annual_data: List[Dict]) -> List[Dict]:
+        """
+        Convert annual expenditure data to quarterly estimates.
+        """
+        quarterly_data = []
+        
+        # Group by expenditure type and government level
+        from itertools import groupby
+        key_func = lambda x: (x['exp_type'], x['gov_level'], x['category'])
+        sorted_data = sorted(annual_data, key=key_func)
+        
+        for key, group in groupby(sorted_data, key_func):
+            group_list = list(group)
+            exp_type, gov_level, category = key
+            
+            # Sort by period
+            group_list.sort(key=lambda x: x['period'])
+            
+            for i, item in enumerate(group_list):
+                annual_amount = item['amount']
+                base_date = pd.to_datetime(item['period'])
+                
+                # Create 4 quarterly estimates
+                for quarter in range(4):
+                    quarter_date = base_date + pd.DateOffset(months=quarter * 3)
+                    
+                    # Apply seasonal patterns based on expenditure type
+                    quarterly_amount = annual_amount / 4
+                    
+                    # Government spending patterns
+                    if category == 'health':
+                        # Health spending higher in winter (Q2, Q3)
+                        seasonal_factors = [0.95, 1.05, 1.05, 0.95]
+                        quarterly_amount *= seasonal_factors[quarter]
+                    elif category == 'education':
+                        # Education spending follows school terms
+                        seasonal_factors = [1.1, 0.9, 1.1, 0.9]
+                        quarterly_amount *= seasonal_factors[quarter]
+                    elif category == 'social_protection':
+                        # Social spending higher in Q4 (end of year payments)
+                        seasonal_factors = [0.95, 0.98, 1.02, 1.05]
+                        quarterly_amount *= seasonal_factors[quarter]
+                    
+                    quarterly_data.append({
+                        **item,
+                        'period': quarter_date.strftime('%Y-%m-%d'),
+                        'amount': round(quarterly_amount, 2),
+                        'interpolated': True,
+                        'interpolation_method': 'seasonal_linear'
+                    })
+        
+        return quarterly_data
     
     def _convert_financial_year_to_date(self, fy_string: str) -> str:
         """Convert financial year string (e.g., '2014-15') to end date."""

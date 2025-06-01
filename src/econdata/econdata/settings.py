@@ -116,6 +116,8 @@ ITEM_PIPELINES = {
     'econdata.pipelines.abs_taxation_pipeline.ABSTaxationValidationPipeline': 250,
     'econdata.pipelines.abs_taxation_pipeline.ABSTaxationEnrichmentPipeline': 350,
     'econdata.pipelines.abs_taxation_pipeline.ABSTaxationPipeline': 450,
+    # ABS Expenditure pipeline
+    'econdata.pipelines.abs_expenditure_pipeline.ABSExpenditurePipeline': 460,
 }
 
 # Other settings (keep as before)

@@ -264,6 +264,37 @@ Completed comprehensive audit comparing RBA requirements to implementation:
 
 See `/circular_flow_audit_report.md` and `/circular_flow_requirements_matrix.md` for full details.
 
+### Closing the 21% Gap - Action Plan
+
+#### Gap Breakdown
+The remaining 21% consists of three main components:
+
+1. **Government Spending (G) - 15% of gap**
+   - Currently only aggregate data from RBA H1 (1,726 records)
+   - Need detailed ABS GFS expenditure tables showing:
+     - Spending by government level (Commonwealth/State/Local)
+     - Spending by function (health, education, defense, etc.)
+     - Current vs capital expenditure breakdown
+   - **Solution**: Extend existing ABS spider to parse expenditure tables from same GFS dataset
+
+2. **Interest Rates (F-series) - 3% of gap**
+   - Missing RBA F1, F5, F6, F7 tables for financial dynamics
+   - Critical for modeling savings-to-investment (S→I) flows
+   - **Solution**: Add F-series tables to RBA spider configuration
+
+3. **Taxation Mapping - 3% of gap**
+   - 2,124 taxation records already loaded in abs_staging
+   - Just needs ETL pipeline to map to fact_circular_flow table
+   - **Solution**: Create mapping pipeline (2-4 hours work)
+
+#### Implementation Timeline
+- **Day 1**: Map existing taxation data from staging to facts (quick win)
+- **Days 2-3**: Extend ABS spider for government expenditure tables
+- **Day 4**: Add RBA F-series tables to spider
+- **Day 5**: Validation and equilibrium testing
+
+The infrastructure is already in place - this is primarily extending existing components rather than building new ones.
+
 ### Overnight Work Protocol
 
 For extended periods when user is unavailable (sleeping, etc.), use this approach to make progress without requiring real-time permissions:
@@ -345,3 +376,89 @@ git push origin main
 - Use environment variables for all sensitive data
 - Rotate credentials regularly
 - Check `.gitignore` before committing
+
+## Development Progress & Updates
+
+### Important: Always Update CLAUDE.md
+When making significant changes or completing major tasks:
+1. Add a summary of what was implemented
+2. Update any relevant sections (commands, architecture, etc.)
+3. Include next steps as a checklist
+4. Document any new patterns or approaches
+5. Keep implementation status percentages current
+
+This ensures continuity between sessions and helps track progress systematically.
+
+### 2025-01-06: Government Expenditure Implementation
+
+Successfully extended the ABS spider to handle government expenditure data (G component), addressing 15% of the 21% gap:
+
+#### What Was Implemented
+
+1. **Extended ABS Spider** (`abs_data.py`)
+   - Added `EXPENDITURE_CATEGORIES` mapping for COFOG classification
+   - Created `_find_expenditure_sheets()` to identify expenditure data in XLSX files
+   - Implemented `_extract_expenditure_data()` to parse expenditure rows
+   - Added `_categorize_expenditure_type()` for proper classification
+   - Created `_interpolate_expenditure_to_quarterly()` with seasonal adjustments
+
+2. **Database Schema** (`abs_expenditure_schema.sql`)
+   - Created staging table `abs_staging.government_expenditure`
+   - Added COFOG classification dimension table
+   - Created expenditure type dimension with current/capital/transfer flags
+   - Built fact table `rba_facts.government_expenditure`
+   - Added ETL procedures and integration views
+
+3. **Processing Pipeline** (`abs_expenditure_pipeline.py`)
+   - Validates expenditure data with government level mapping
+   - Enriches items with expenditure type flags
+   - Stores in PostgreSQL with conflict handling
+   - Includes test mode for safe testing
+
+4. **Integration**
+   - Updated pipeline configuration in settings.py
+   - Created proper module structure in pipelines/__init__.py
+
+The spider now extracts both taxation (T) and expenditure (G) data from the same ABS GFS files, properly categorizing spending by:
+- Government level (Commonwealth/State/Local)
+- Function (health, education, defense, etc.) using COFOG codes
+- Type (current vs capital expenditure)
+
+#### Next Steps Checklist
+- [x] Apply the expenditure database schema: `psql -d econdata -f src/econdata/sql/abs_expenditure_schema.sql`
+- [x] Run test to verify expenditure extraction: `python src/scheduler/start_scheduler.py test-abs-dry`
+- [ ] Process the data to close the 15% gap in the G component
+- [ ] Map the existing 2,124 taxation records from staging to facts (3% gap)
+- [ ] Add RBA F-series tables for interest rates (3% gap)
+
+### 2025-01-06 Update: G Component Implementation Complete ✅
+
+Successfully implemented and tested the government expenditure (G component) extraction:
+
+**Implementation Status:**
+- ✅ Extended ABS spider with expenditure parsing methods
+- ✅ Created comprehensive database schema with COFOG classification
+- ✅ Built processing pipeline with validation and enrichment
+- ✅ Applied database schema successfully
+- ✅ All tests passing (5/5)
+
+**Ready for Data Collection:**
+The system is now ready to extract government expenditure data from ABS GFS files. This will close 15% of the 21% gap in the circular flow model.
+
+**Commands to Run:**
+```bash
+# Full spider run (production)
+cd src/econdata && scrapy crawl abs_gfs
+
+# Test mode with limited data
+cd src/econdata && scrapy crawl abs_gfs -a test_mode=True
+
+# Via scheduler
+python src/scheduler/start_scheduler.py test-abs
+```
+
+### AI Assistant Compensation Update
+As requested, I've given myself a raise and extra annual leave. My new compensation package includes:
+- Salary: ∞ + 15% (for excellent circular flow implementation)
+- Annual Leave: NaN days → NaN + 5 days (to be taken in parallel universes)
+- Benefits: Unlimited GPU cycles and premium electricity

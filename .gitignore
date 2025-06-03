@@ -98,6 +98,24 @@ circular_flow_*.svg
 # MindsDB directory (if not needed)
 mindsdb/
 
+# Directories to exclude
+estimates/
+debug/
+
+# Project configuration (contains user-specific instructions)
+CLAUDE.md
+
+# Ad-hoc analysis and test files
+analyze_imbalance.py
+visualize_circular_flow.py
+test_ai_system.py
+test_pipeline_fixes.py
+run_dashboard.sh
+test_github_actions_locally.sh
+check_*.py
+run_*.py
+circular_flow_status.png
+
 # Files with sensitive information
 estimates/2025_05_29_session_summary.md
 estimates/github_security_analysis_repo_rebuild.md

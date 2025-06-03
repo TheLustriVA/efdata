@@ -53,15 +53,15 @@ jobs:
         
     - name: Test RBA endpoint
       run: |
-        # Quick check that RBA API is still accessible
-        python -c "
-import requests
-response = requests.get('https://api.rba.gov.au/statistics/tables', timeout=10)
-if response.status_code != 200:
-    print(f'ERROR: RBA API returned {response.status_code}')
-    exit(1)
-print('✓ RBA API accessible')
-"
+        cat << 'EOF' > test_rba.py
+        import requests
+        response = requests.get('https://api.rba.gov.au/statistics/tables', timeout=10)
+        if response.status_code != 200:
+            print(f'ERROR: RBA API returned {response.status_code}')
+            exit(1)
+        print('✓ RBA API accessible')
+        EOF
+        python test_rba.py
     
     - name: Check spider syntax
       run: |

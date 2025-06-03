@@ -29,25 +29,26 @@ jobs:
         PSQL_PW: ${{ secrets.PSQL_PW }}
         PSQL_DB: ${{ secrets.PSQL_DB }}
       run: |
-        python -c "
-import os
-import sys
-from datetime import datetime, timedelta
-
-# This is a template - will only work when DB is accessible
-print('Data freshness check would run here')
-print('Would alert if data is older than 7 days')
-
-# When you have a production DB, uncomment:
-# import psycopg2
-# conn = psycopg2.connect(...)
-# cur = conn.cursor()
-# cur.execute('SELECT MAX(date_value) FROM rba_dimensions.dim_time')
-# latest_date = cur.fetchone()[0]
-# if latest_date < datetime.now().date() - timedelta(days=7):
-#     print(f'WARNING: Latest data is {(datetime.now().date() - latest_date).days} days old!')
-#     sys.exit(1)
-"
+        cat << 'EOF' > check_freshness.py
+        import os
+        import sys
+        from datetime import datetime, timedelta
+        
+        # This is a template - will only work when DB is accessible
+        print('Data freshness check would run here')
+        print('Would alert if data is older than 7 days')
+        
+        # When you have a production DB, uncomment:
+        # import psycopg2
+        # conn = psycopg2.connect(...)
+        # cur = conn.cursor()
+        # cur.execute('SELECT MAX(date_value) FROM rba_dimensions.dim_time')
+        # latest_date = cur.fetchone()[0]
+        # if latest_date < datetime.now().date() - timedelta(days=7):
+        #     print(f'WARNING: Latest data is {(datetime.now().date() - latest_date).days} days old!')
+        #     sys.exit(1)
+        EOF
+        python check_freshness.py
         
     - name: Create issue if data is stale
       if: failure()

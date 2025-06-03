@@ -9,7 +9,7 @@ setup(
     name="efdata",
     version="0.1.0",
     author="Kieran Bicheno",
-    author_email="kieran.bicheno@gmail.com",
+    author_email="kieran@bicheno.me",
     description="Economic Flow Data Integration Platform for Australian Economic Statistics",
     long_description=long_description,
     long_description_content_type="text/markdown",

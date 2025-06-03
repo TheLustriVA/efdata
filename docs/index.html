@@ -5,13 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EFData - Economic Flow Data Integration Platform</title>
     <style>
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --accent: #3498db;
+            --accent-hover: #2980b9;
+            --header-bg: #2c3e50;
+            --border: rgba(0,0,0,0.1);
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2d2d2d;
+                --text-primary: #e0e0e0;
+                --text-secondary: #b0b0b0;
+                --accent: #5dade2;
+                --accent-hover: #3498db;
+                --header-bg: #0f1419;
+                --border: rgba(255,255,255,0.1);
+                --shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent: #5dade2;
+            --accent-hover: #3498db;
+            --header-bg: #0f1419;
+            --border: rgba(255,255,255,0.1);
+            --shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: var(--text-primary);
             margin: 0;
             padding: 0;
-            background: #f8f9fa;
+            background: var(--bg-primary);
         }
         .container {
             max-width: 1000px;
@@ -19,7 +57,7 @@
             padding: 20px;
         }
         header {
-            background: #2c3e50;
+            background: var(--header-bg);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
@@ -34,11 +72,11 @@
             margin-top: 0.5rem;
         }
         .section {
-            background: white;
+            background: var(--bg-secondary);
             padding: 2rem;
             margin-bottom: 2rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
         }
         .feature-grid {
             display: grid;
@@ -66,14 +104,14 @@
         .stat-number {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #2c3e50;
+            color: var(--accent);
         }
         .stat-label {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
         .cta {
-            background: #3498db;
+            background: var(--accent);
             color: white;
             padding: 1rem 2rem;
             text-decoration: none;
@@ -82,21 +120,83 @@
             margin: 1rem 0;
         }
         .cta:hover {
-            background: #2980b9;
+            background: var(--accent-hover);
         }
         .warning {
             background: #fff3cd;
-            border: 1px solid #ffeaa7;
+            border: 1px solid var(--border);
             padding: 1rem;
             border-radius: 5px;
             margin: 1rem 0;
         }
+        [data-theme="dark"] .warning {
+            background: #3d3200;
+            color: #ffd700;
+        }
+        header .container {
+            position: relative;
+        }
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            border-color: rgba(255,255,255,0.6);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .theme-icon {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(20deg);
+        }
     </style>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const icon = document.querySelector('.theme-icon');
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+        
+        // Check for saved theme preference or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Update icon on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const icon = document.querySelector('.theme-icon');
+            icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        });
+    </script>
 </head>
 <body>
     <header>
         <div class="container">
             <h1>EFData</h1>
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+                <span class="theme-icon">🌙</span>
+            </button>
             <p class="tagline">Economic Flow Data Integration Platform</p>
         </div>
     </header>
@@ -176,7 +276,7 @@
             
             <p><strong>Pricing:</strong> $500-2000/month depending on data frequency and support level</p>
             
-            <a href="mailto:kieran.bicheno@gmail.com" class="cta">Contact for Demo</a>
+            <a href="mailto:kieran@bicheno.me" class="cta">Contact for Demo</a>
         </section>
 
         <section class="section">

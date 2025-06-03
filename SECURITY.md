@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in EFData, please **DO NOT** create a public GitHub issue.
 
-Instead, please send details to: kieran.bicheno@gmail.com
+Instead, please send details to: kieran@bicheno.me
 
 Include:
 - Description of the vulnerability

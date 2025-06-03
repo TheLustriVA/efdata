@@ -139,7 +139,7 @@ MIT License - see [LICENSE](LICENSE) file
 
 ## Contact
 
-Kieran Bicheno - kieran.bicheno@gmail.com
+Kieran Bicheno - kieran@bicheno.me
 
 ---
 

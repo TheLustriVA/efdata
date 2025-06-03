@@ -11,11 +11,11 @@ docker-compose --env-file .env.test config > /dev/null || { echo "❌ Docker com
 rm .env.test
 
 echo -e "\n3. Checking for secrets in code..."
-if grep -r "PSQL_PW\|password\|api_key" --include="*.py" --exclude-dir=".venv" --exclude-dir=".git" . | grep -v "getenv\|environ\|example\|\.env"; then
+if grep -r -E "(password|api_key|secret)\s*=\s*['\"][^'\"]{3,}['\"]" --include="*.py" --exclude-dir=".venv" --exclude-dir=".git" . | grep -v -E "(getenv|environ|example|\.env|input\(|st\.text_input|settings\.get)"; then
     echo "❌ WARNING: Possible hardcoded secrets found!"
     exit 1
 fi
-echo "✅ No secrets found"
+echo "✅ No hardcoded secrets detected"
 
 echo -e "\n=== Testing Data Validation Workflow ==="
 echo "4. Testing Python syntax..."

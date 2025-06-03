@@ -24,8 +24,11 @@ ENV/
 
 # Environment files with secrets
 .env
-.env.*
+.env.local
+.env.production
 *.env
+# But NOT .env.example - we need that for Docker builds
+!.env.example
 
 # IDE
 .vscode/

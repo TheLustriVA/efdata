@@ -1,0 +1,93 @@
+# Git
+.git
+.gitignore
+.githooks
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv
+venv/
+env/
+ENV/
+
+# Environment files with secrets
+.env
+.env.*
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Project specific
+downloads/
+logs/
+*.log
+*.sqlite
+*.db
+debug/
+temp/
+scratch/
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Backups and dumps
+*.sql
+*.dump
+*.backup
+backup/
+backups/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Build artifacts
+build/
+dist/
+*.egg-info
+
+# MindsDB (if still present)
+mindsdb/
+
+# Large data files
+*.csv
+*.xlsx
+*.xls
+*.json
+data/
+
+# Security - double check these aren't included
+*.pem
+*.key
+*.crt
+*.p12

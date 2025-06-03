@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: efdata-db
+    environment:
+      POSTGRES_DB: ${PSQL_DB:-efdata}
+      POSTGRES_USER: ${PSQL_USER:-efdata_user}
+      POSTGRES_PASSWORD: ${PSQL_PW:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/econdata/sql:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5433:5432"  # Using 5433 to avoid conflicts with local postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PSQL_USER:-efdata_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  efdata-app:
+    build: .
+    container_name: efdata-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PSQL_DB=${PSQL_DB:-efdata}
+      - PSQL_USER=${PSQL_USER:-efdata_user}
+      - PSQL_PW=${PSQL_PW:-changeme}
+      - PSQL_HOST=postgres
+      - PSQL_PORT=5432
+      - XR_API_KEY=${XR_API_KEY}
+    volumes:
+      - ./logs:/app/logs
+      - ./downloads:/app/downloads
+    ports:
+      - "8000:8000"  # API port
+    restart: unless-stopped
+    command: python -m src.scheduler.spider_scheduler
+
+  efdata-api:
+    build: .
+    container_name: efdata-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - PSQL_DB=${PSQL_DB:-efdata}
+      - PSQL_USER=${PSQL_USER:-efdata_user}
+      - PSQL_PW=${PSQL_PW:-changeme}
+      - PSQL_HOST=postgres
+      - PSQL_PORT=5432
+    ports:
+      - "8001:8001"  # Using 8001 to avoid common conflicts
+    restart: unless-stopped
+    command: python -m frontend.api
+
+  # Optional: pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: efdata-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@efdata.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    profiles:
+      - debug
+
+volumes:
+  postgres_data:
+    name: efdata_postgres_data
+
+networks:
+  default:
+    name: efdata_network

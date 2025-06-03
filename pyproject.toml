@@ -1,7 +1,7 @@
 [project]
-name = "econcell"
+name = "efdata"
 version = "0.1.0"
-description = "Advanced Economic Modeling and Policy Analysis System with AI Integration"
+description = "Economic Flow Data Integration Platform for Australian Economic Statistics"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -1,0 +1,2 @@
+qwen2.5-coder:32b
+phi4-reasoning:14b

@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MindsDB for economic data analysis
+  mindsdb-econcell:
+    image: mindsdb/mindsdb:latest
+    container_name: mindsdb-econcell
+    restart: unless-stopped
+    ports:
+      - '47334:47334'  # HTTP API
+      - '47335:47335'  # MySQL API
+      - '47336:47336'  # MongoDB API  
+      - '47337:47337'  # PostgreSQL API
+      - '47338:47338'  # A2A server (for MCP)
+    environment:
+      # Database connection
+      MINDSDB_DB_CON: "postgresql://mindsdb:mindsdb@postgres-mindsdb/mindsdb"
+      MINDSDB_DOCKER_ENV: "True"
+      MINDSDB_STORAGE_DIR: "/mindsdb/var"
+      
+      # APIs to enable
+      MINDSDB_APIS: "http,mysql,postgres,mongodb,a2a,mcp"
+      MINDSDB_A2A_HOST: "0.0.0.0"
+      MINDSDB_A2A_PORT: "47338"
+      
+      # Venice API key from environment
+      VENICE_API_KEY: "${VENICE_API_KEY}"
+      
+      # Log level for debugging
+      MINDSDB_LOG_LEVEL: "INFO"
+      
+    volumes:
+      - mindsdb-data:/mindsdb/var
+      - ./mindsdb_config.json:/mindsdb/config.json:ro
+    depends_on:
+      postgres-mindsdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:47334/api/util/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mindsdb-net
+
+  # PostgreSQL for MindsDB metadata
+  postgres-mindsdb:
+    image: postgres:15-alpine
+    container_name: postgres-mindsdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mindsdb
+      POSTGRES_PASSWORD: mindsdb
+      POSTGRES_DB: mindsdb
+    volumes:
+      - postgres-mindsdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mindsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mindsdb-net
+
+  # Ollama connection (assumes Ollama is already running on host)
+  # MindsDB will connect to host.docker.internal:11434
+
+volumes:
+  mindsdb-data:
+  postgres-mindsdb-data:
+
+networks:
+  mindsdb-net:
+    driver: bridge

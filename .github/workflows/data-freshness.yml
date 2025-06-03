@@ -1,0 +1,63 @@
+name: Data Freshness Alert
+
+on:
+  schedule:
+    # Run every Monday at 9 AM
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  check-data-age:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        pip install psycopg2-binary python-dotenv pandas
+        
+    - name: Check data freshness
+      env:
+        PSQL_HOST: ${{ secrets.PSQL_HOST }}
+        PSQL_USER: ${{ secrets.PSQL_USER }}
+        PSQL_PW: ${{ secrets.PSQL_PW }}
+        PSQL_DB: ${{ secrets.PSQL_DB }}
+      run: |
+        python -c "
+import os
+import sys
+from datetime import datetime, timedelta
+
+# This is a template - will only work when DB is accessible
+print('Data freshness check would run here')
+print('Would alert if data is older than 7 days')
+
+# When you have a production DB, uncomment:
+# import psycopg2
+# conn = psycopg2.connect(...)
+# cur = conn.cursor()
+# cur.execute('SELECT MAX(date_value) FROM rba_dimensions.dim_time')
+# latest_date = cur.fetchone()[0]
+# if latest_date < datetime.now().date() - timedelta(days=7):
+#     print(f'WARNING: Latest data is {(datetime.now().date() - latest_date).days} days old!')
+#     sys.exit(1)
+"
+        
+    - name: Create issue if data is stale
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Data Collection May Be Broken',
+            body: 'The automated data freshness check failed. This likely means:\n\n- RBA/ABS changed their data format\n- The scheduler stopped running\n- Database connection issues\n\nCheck the logs and fix ASAP before clients notice.',
+            labels: ['bug', 'urgent']
+          })

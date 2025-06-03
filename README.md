@@ -1,338 +1,146 @@
-# 🌐 EconCell: Advanced Economic Modeling & Policy Analysis System
+# EFData - Economic Flow Data Integration Platform
 
-[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://stand-with-ukraine.pp.ua)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://postgresql.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<div align="center">
+**Automated collection and validation of Australian economic data from RBA and ABS sources**
 
-![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+## What is EFData?
 
-**Transform economic data into actionable insights using AI-powered cellular automata modeling**
+EFData integrates economic data from the Reserve Bank of Australia (RBA) and Australian Bureau of Statistics (ABS) into a unified, validated dataset. It tracks circular flow components (C, I, G, X, M, S, T, Y) and identifies discrepancies between official sources.
 
-[Features](#-features) •
-[Architecture](#-architecture) •
-[Quick Start](#-quick-start) •
-[Documentation](#-documentation) •
-[Contributing](#-contributing)
+### Key Features
 
-</div>
+- ✅ **Automated Data Collection** - Scheduled spiders collect RBA tables and ABS statistics
+- 📊 **50,000+ Data Points** - Comprehensive coverage from 1959 to present
+- 🔄 **Circular Flow Tracking** - All 8 components of the economic identity
+- ⚡ **Data Validation** - Identifies ~14% systematic variance between RBA/ABS methodologies
+- 🔧 **RESTful API** - Easy programmatic access to all data
 
----
+## Quick Start
 
-## 🎯 What is EconCell?
-
-EconCell (Economic Cellular Simulation System) is a cutting-edge economic modeling platform that combines:
-
-- 🤖 **Multiple AI Models** - Orchestrated LLMs including Qwen 32B and Llama 70B for economic analysis
-- 📊 **Real-time Data Pipeline** - Automated collection from Reserve Bank of Australia (RBA) and global sources
-- 🔄 **Circular Flow Modeling** - Implementation of RBA's economic framework using cellular automata
-- ⚡ **GPU Acceleration** - High-performance simulations with intelligent resource management
-- 🌍 **Multi-frequency Analysis** - Handle everything from daily FX rates to quarterly GDP data
-
-### 🎬 See It In Action
-
-```mermaid
-graph TB
-    subgraph "Data Sources"
-        RBA[RBA Data API]
-        XR[Exchange Rates API]
-        ABS[ABS Statistics]
-    end
-    
-    subgraph "EconCell Core"
-        SP[Scrapy Spiders]
-        DB[(PostgreSQL)]
-        AI{AI Orchestrator}
-        CA[Cellular Automata Engine]
-    end
-    
-    subgraph "Outputs"
-        API[FastAPI Server]
-        VIZ[Visualizations]
-        REP[Policy Reports]
-    end
-    
-    RBA --> SP
-    XR --> SP
-    ABS --> SP
-    SP --> DB
-    DB --> AI
-    AI --> CA
-    CA --> API
-    API --> VIZ
-    API --> REP
-    
-    style AI fill:#f96,stroke:#333,stroke-width:4px
-    style CA fill:#9cf,stroke:#333,stroke-width:4px
-```
-
-## ✨ Features
-
-### 🔮 AI-Powered Economic Intelligence
-- **Multi-Model Consensus**: Critical analyses verified across multiple LLMs
-- **Anomaly Detection**: ML-powered identification of unusual economic patterns
-- **Natural Language Insights**: Complex economic relationships explained clearly
-- **Predictive Modeling**: Forward-looking economic indicators and scenarios
-
-### 📈 Comprehensive Data Integration
-- **Automated Collection**: Scheduled spiders for RBA tables, exchange rates, and more
-- **Data Quality Pipeline**: Validation, enrichment, and anomaly detection
-- **Multi-frequency Alignment**: Intelligent resampling of mixed-frequency data
-- **Historical Depth**: Access to decades of economic indicators
-
-### 🏗️ Production-Ready Architecture
-```python
-# Example: Simple economic analysis
-from econcell import AICoordinator, EconomicAnalyzer
-
-async def analyze_inflation():
-    coordinator = AICoordinator()
-    analyzer = EconomicAnalyzer(coordinator)
-    
-    # AI-powered analysis with multi-model consensus
-    result = await analyzer.analyze_inflation_drivers(
-        components=['CPI', 'wage_growth', 'housing'],
-        models=['qwen-32b', 'llama-70b'],
-        consensus_required=True
-    )
-    
-    return result.insights
-```
-
-### 🎨 Beautiful Visualizations
-- Interactive circular flow diagrams
-- Real-time currency exchange maps
-- Economic indicator dashboards
-- Policy impact simulations
-
-## 🏛️ Architecture
-
-### System Components
-
-| Component | Purpose | Technology |
-|-----------|---------|------------|
-| **Data Ingestion** | Automated data collection | Scrapy, APScheduler |
-| **Storage Layer** | Time-series optimized database | PostgreSQL with TimescaleDB |
-| **AI System** | Economic analysis & insights | PyTorch, Transformers, Ollama |
-| **API Layer** | RESTful data access | FastAPI, Pydantic |
-| **Compute Engine** | Cellular automata simulations | NumPy, Numba, CUDA |
-
-### Database Schema
-
-The system uses a sophisticated star schema optimized for economic time-series:
-
-```sql
--- Example: Circular flow components
-CREATE TABLE rba_analytics.circular_flow (
-    date DATE,
-    frequency rba_dimensions.frequency_type,
-    component VARCHAR(10), -- Y, C, I, G, X, M, S, T
-    value NUMERIC,
-    confidence_score FLOAT,
-    ai_insights JSONB
-);
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.12+
-- PostgreSQL 15+
-- CUDA-capable GPU (optional, for acceleration)
-- 16GB+ RAM recommended
-
-### Installation
+### Using Docker (Recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/TheLustriVA/econcell.git
-cd econcell
+git clone https://github.com/TheLustriVA/efdata.git
+cd efdata
 
-# Create virtual environment with uv (recommended)
-uv venv
+# Copy environment file and edit with your settings
+cp .env.example .env
+
+# Start services
+docker-compose up -d
+
+# Check status
+docker-compose ps
+```
+
+### Manual Installation
+
+```bash
+# Create virtual environment
+python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-uv pip install -e .
+pip install -r requirements.txt
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials and API keys
+# Set up PostgreSQL database
+psql -U postgres -f src/econdata/sql/abs_taxation_schema.sql
+psql -U postgres -f src/econdata/sql/abs_expenditure_schema.sql
 
-# Initialize database
-psql -U postgres -f debug/rba_circular_flow_postgresql_ddl.sql
-
-# Run initial data collection
-python src/scheduler/start_scheduler.py test-rba
+# Run data collection
+python -m src.scheduler.spider_scheduler
 ```
 
-### 🎮 Usage Examples
+## Available Data
 
-#### 1. Start the API Server
-```bash
-uvicorn frontend.api:app --reload --port 7001
-```
+| Component | Description | Records | Coverage |
+|-----------|-------------|---------|----------|
+| **C** | Consumption | 4,980 | 1959-2024 |
+| **I** | Investment | 11,956 | 1965-2025 |
+| **G** | Government Expenditure | 2,246 | 1959-2025 |
+| **X** | Exports | 4,210 | 1959-2024 |
+| **M** | Imports | 4,210 | 1959-2024 |
+| **S** | Savings | 14,594 | 1959-2025 |
+| **T** | Taxation | 400 | 2015-2025 |
+| **Y** | Income | 6,706 | 1959-2024 |
 
-#### 2. Query Economic Data
+## API Usage
+
 ```python
-import httpx
+import requests
 
-# Get latest GDP components
-response = httpx.get("http://localhost:7001/api/v1/gdp/components")
-gdp_data = response.json()
+# Get government expenditure data
+response = requests.get('http://localhost:8001/api/v1/data/government')
+data = response.json()
 
-# Analyze inflation drivers
-analysis = httpx.post(
-    "http://localhost:7001/api/v1/analyze/inflation",
-    json={"period": "2023-2024", "components": ["housing", "energy"]}
-)
+# Get circular flow imbalance analysis
+response = requests.get('http://localhost:8001/api/v1/analysis/imbalance')
+analysis = response.json()
 ```
 
-#### 3. Run Economic Simulations
-```python
-from econcell.simulation import CircularFlowSimulator
+## Architecture
 
-sim = CircularFlowSimulator()
-results = sim.run_scenario({
-    "interest_rate_change": 0.25,
-    "government_spending_change": 1000000000,
-    "export_shock": -0.05
-})
+```
+┌─────────────────┐     ┌─────────────────┐
+│   RBA Website   │     │   ABS Website   │
+└────────┬────────┘     └────────┬────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────────────────────────────┐
+│          Scrapy Spiders                 │
+│  (Scheduled data collection)            │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│         PostgreSQL Database             │
+│  (Time-series optimized storage)        │
+└────────────────┬────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────┐
+│           FastAPI Server                │
+│    (RESTful API endpoints)              │
+└─────────────────────────────────────────┘
 ```
 
-## 📚 Documentation
+## Data Quality Notes
 
-### Core Concepts
+EFData reveals a consistent ~14% discrepancy in the circular flow identity (S+T+M ≠ I+G+X). This is due to:
+- Methodological differences between RBA and ABS
+- Different revision cycles and data collection methods
+- Conceptual measurement variations
 
-- **[Circular Flow Model](docs/circular_flow.md)** - Understanding the RBA framework
-- **[AI Architecture](docs/ai_system.md)** - Multi-model orchestration design
-- **[Data Pipeline](docs/data_pipeline.md)** - From collection to insights
-- **[API Reference](docs/api_reference.md)** - Complete endpoint documentation
+This is a known issue in Australian economic statistics that EFData tracks and quantifies.
 
-### Tutorials
+## For Researchers & Financial Analysts
 
-1. **[Building Your First Economic Model](docs/tutorials/first_model.md)**
-2. **[Analyzing Policy Impacts](docs/tutorials/policy_analysis.md)**
-3. **[Creating Custom Visualizations](docs/tutorials/visualizations.md)**
-4. **[Extending the AI System](docs/tutorials/ai_extension.md)**
+EFData provides:
+- **Unified access** to dispersed government data sources
+- **Historical consistency** across decades of data
+- **Transparent methodology** for data integration
+- **Validation metrics** for data quality assessment
 
-## 🤝 Contributing
+## Contributing
 
-We love contributions! EconCell is a community-driven project that welcomes developers, economists, and data scientists.
+Contributions welcome! Key areas:
+- Additional data sources (state budgets, industry data)
+- Enhanced validation algorithms
+- API client libraries (R, Julia, MATLAB)
+- Documentation improvements
 
-### How to Contribute
+## License
 
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Make your changes** and add tests
-4. **Run quality checks**:
-   ```bash
-   pytest -v
-   black --check src/
-   mypy src/
-   ```
-5. **Commit** with a descriptive message
-6. **Push** to your branch
-7. **Open a Pull Request**
+MIT License - see [LICENSE](LICENSE) file
 
-### Development Setup
+## Contact
 
-```bash
-# Install development dependencies
-uv pip install -e ".[dev]"
-
-# Run pre-commit hooks
-pre-commit install
-
-# Run tests with coverage
-pytest --cov=econcell --cov-report=html
-```
-
-### Areas We Need Help
-
-- 🌍 **Additional data sources** (ECB, Fed, BoE)
-- 🎨 **Visualization improvements** (D3.js, Three.js)
-- 🧮 **Economic model implementations**
-- 📖 **Documentation and tutorials**
-- 🌐 **Internationalization**
-
-## 🔒 Security
-
-- All credentials use environment variables
-- API authentication via JWT tokens
-- Database connections use SSL
-- Regular dependency security audits
-
-See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
-
-## 📊 Performance
-
-Benchmarks on typical hardware (RTX 3090, 64GB RAM):
-
-| Operation | Time | Throughput |
-|-----------|------|------------|
-| RBA Data Ingestion | 45s | 10,000 rows/sec |
-| AI Analysis (Qwen 32B) | 2.3s | 430 tokens/sec |
-| Cellular Simulation (1M cells) | 0.8s | 1.25M cells/sec |
-| API Response (cached) | 12ms | 83 req/sec |
-
-## 🚧 Roadmap
-
-### Phase 1: Foundation ✅
-- [x] RBA data pipeline
-- [x] Multi-frequency architecture
-- [x] Basic AI integration
-- [x] SystemD service management
-
-### Phase 2: Intelligence (Current)
-- [ ] Advanced ML models for prediction
-- [ ] Natural language query interface
-- [ ] Real-time anomaly detection
-- [ ] Policy recommendation engine
-
-### Phase 3: Scale
-- [ ] Distributed computing support
-- [ ] International data sources
-- [ ] Multi-language support
-- [ ] Cloud deployment templates
-
-### Phase 4: Innovation
-- [ ] Quantum economic modeling
-- [ ] Blockchain integration
-- [ ] AR/VR visualizations
-- [ ] Academic collaboration portal
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Reserve Bank of Australia** for open data access
-- **Australian Bureau of Statistics** for comprehensive datasets
-- **Open source community** for amazing tools and libraries
-- **Contributors** who make this project better every day
-
-## 📮 Contact
-
-- **Project Lead**: Kieran [@TheLustriVA](https://github.com/TheLustriVA)
-- **Email**: econcell@proton.me
-- **Discord**: [Join our community](https://discord.gg/econcell)
-- **Twitter**: [@EconCell](https://twitter.com/econcell)
+Kieran Bicheno - kieran.bicheno@gmail.com
 
 ---
 
-<div align="center">
-
-**Built with ❤️ by economists and engineers who believe in open source**
-
-*"The best way to predict the future is to model it"*
-
-[⬆ Back to top](#-econcell-advanced-economic-modeling--policy-analysis-system)
-
-</div>
+*Built by a former News Corp data engineer who got tired of manually reconciling government statistics*

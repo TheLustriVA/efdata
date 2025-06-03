@@ -79,4 +79,25 @@ temp*
 
 # Project specific
 urls.txt
-src/scheduler/.env.example
+mindsdb_config.json
+config/ai_config.json
+check_*.py
+run_*.py
+*.pem
+*.key
+*.crt
+
+# Generated visualizations
+*.png
+circular_flow_*.png
+circular_flow_*.svg
+
+# Claude artifacts
+.claude/
+
+# MindsDB directory (if not needed)
+mindsdb/
+
+# Files with sensitive information
+estimates/2025_05_29_session_summary.md
+estimates/github_security_analysis_repo_rebuild.md

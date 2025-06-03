@@ -1,0 +1,11 @@
+# Robots.txt for EFData GitHub Pages
+
+User-agent: *
+Allow: /
+
+# Prevent crawling of assets if added later
+Disallow: /assets/
+Disallow: /downloads/
+
+# Sitemap location (if you add one later)
+# Sitemap: https://thelustriya.github.io/efdata/sitemap.xml

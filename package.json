@@ -1,0 +1,19 @@
+{
+  "name": "efdata",
+  "version": "0.1.0",
+  "description": "Economic Flow Data Integration Platform",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheLustriVA/efdata.git"
+  },
+  "author": "Kieran Bicheno",
+  "license": "MIT",
+  "homepage": "https://thelustriya.github.io/efdata/",
+  "keywords": [
+    "economics",
+    "data-integration",
+    "australia",
+    "rba",
+    "abs"
+  ]
+}

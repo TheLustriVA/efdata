@@ -1,0 +1,69 @@
+version: '3.8'
+
+# Production overrides
+services:
+  postgres:
+    # In production, you might want to use a managed database
+    # or at least add better security
+    environment:
+      POSTGRES_DB: ${PSQL_DB}
+      POSTGRES_USER: ${PSQL_USER}
+      POSTGRES_PASSWORD: ${PSQL_PW}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups  # For database backups
+    # No ports exposed in production - only internal network
+    expose:
+      - "5432"
+    ports: []
+
+  efdata-app:
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  efdata-api:
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    # Use a reverse proxy in production instead of exposing directly
+    expose:
+      - "8001"
+    ports: []
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Add nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: efdata-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - efdata-api
+    restart: always
+
+volumes:
+  postgres_data:
+    name: efdata_postgres_data_prod
+  backups:
+    name: efdata_backups

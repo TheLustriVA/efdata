@@ -26,7 +26,7 @@ jobs:
     - name: Test Docker Compose
       run: |
         cp .env.example .env
-        docker-compose config
+        docker compose config
         
     - name: Check for secrets in code
       run: |

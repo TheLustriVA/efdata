@@ -31,10 +31,10 @@ cd efdata
 cp .env.example .env
 
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Check status
-docker-compose ps
+docker compose ps
 ```
 
 ### Manual Installation

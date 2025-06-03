@@ -11,12 +11,12 @@ cp .env.example .env
 
 3. Build and start the services:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 4. Initialize the database (first time only):
 ```bash
-docker-compose exec efdata-app python -m src.econdata.init_db
+docker compose exec efdata-app python -m src.econdata.init_db
 ```
 
 5. Access the services:
@@ -34,29 +34,29 @@ docker-compose exec efdata-app python -m src.econdata.init_db
 
 ### View logs
 ```bash
-docker-compose logs -f efdata-app
+docker compose logs -f efdata-app
 ```
 
 ### Run a one-time data collection
 ```bash
-docker-compose exec efdata-app python -m src.econdata.run_spiders
+docker compose exec efdata-app python -m src.econdata.run_spiders
 ```
 
 ### Access the database
 ```bash
-docker-compose exec postgres psql -U efdata_user -d efdata
+docker compose exec postgres psql -U efdata_user -d efdata
 ```
 
 ### Backup database
 ```bash
-docker-compose exec postgres pg_dump -U efdata_user efdata > backup.sql
+docker compose exec postgres pg_dump -U efdata_user efdata > backup.sql
 ```
 
 ## Production Deployment
 
 For production, use the production compose file:
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 This adds:
@@ -75,12 +75,12 @@ If you get port conflicts, you can change the ports in docker-compose.yml:
 ### Database connection issues
 Make sure the database is healthy:
 ```bash
-docker-compose ps
-docker-compose exec postgres pg_isready
+docker compose ps
+docker compose exec postgres pg_isready
 ```
 
 ### Reset everything
 ```bash
-docker-compose down -v  # Warning: This deletes all data!
-docker-compose up -d
+docker compose down -v  # Warning: This deletes all data!
+docker compose up -d
 ```

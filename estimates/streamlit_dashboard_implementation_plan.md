@@ -137,20 +137,21 @@ elif authentication_status:
         show_paid_dashboard()
 ```
 
-### Free Tier Limitations
-- Last 2 years of data only
-- Quarterly aggregates only  
-- No download buttons
-- Watermarked charts
-- 5 refreshes per day
+### Free Tier (API + Basic Dashboard)
+- Full API access (rate limited to 1000 calls/day)
+- Basic dashboard with all components
+- Quarterly aggregates only
+- No export buttons
+- Community support only
 
 ### Paid Tier Features
-- Full historical data (1959-present)
+- Unlimited API calls
 - Daily/monthly/quarterly/annual views
-- Download as CSV/Excel buttons
-- API key generation
-- No watermarks
-- Unlimited refreshes
+- Download as CSV/Excel/JSON buttons
+- Custom date ranges and queries
+- Priority support
+- No rate limits
+- Bulk data exports
 
 ## Phase 3: Data Export Features (2 hours)
 

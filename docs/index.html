@@ -124,13 +124,15 @@
         }
         .warning {
             background: #fff3cd;
-            border: 1px solid var(--border);
+            border: 1px solid #ffeaa7;
+            color: #856404;
             padding: 1rem;
             border-radius: 5px;
             margin: 1rem 0;
         }
         [data-theme="dark"] .warning {
             background: #3d3200;
+            border: 1px solid #ffd700;
             color: #ffd700;
         }
         header .container {
@@ -165,6 +167,31 @@
         }
         .theme-toggle:hover .theme-icon {
             transform: rotate(20deg);
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* Fix link visibility in sections */
+        .section a {
+            color: var(--accent);
+            font-weight: 500;
+        }
+        [data-theme="dark"] .section a {
+            color: #5dade2;
+        }
+        /* Ensure all text respects theme */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--text-primary);
+        }
+        .section h2, .section h3 {
+            color: var(--text-primary);
+        }
+        p, li {
+            color: var(--text-primary);
         }
     </style>
     <script>
@@ -266,22 +293,8 @@
         </section>
 
         <section class="section">
-            <h2>Get Started</h2>
-            <p>EFData is available as:</p>
-            <ul>
-                <li><strong>API Access</strong>: RESTful API for your applications</li>
-                <li><strong>Data Export</strong>: CSV/Excel downloads for analysis</li>
-                <li><strong>Dashboard</strong>: Web-based visualization (coming soon)</li>
-            </ul>
-            
-            <p><strong>Pricing:</strong> $500-2000/month depending on data frequency and support level</p>
-            
-            <a href="mailto:kieran@bicheno.me" class="cta">Contact for Demo</a>
-        </section>
-
-        <section class="section">
             <h2>Technical Details</h2>
-            <p>Built by Kieran Bicheno, former News Corp Analytics Lead</p>
+            <p>Built by Kieran Bicheno, former News Corp Digital News Editor</p>
             <ul>
                 <li>PostgreSQL time-series database</li>
                 <li>Python-based ETL pipeline</li>

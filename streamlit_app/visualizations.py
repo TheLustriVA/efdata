@@ -188,16 +188,25 @@ def create_data_quality_heatmap():
     metrics = ['Data Points', 'Days Old', 'Years Coverage']
     
     z_data = []
+    text_data = []
     for component in components:
         row_data = df[df['component_code'] == component]
         if not row_data.empty:
+            # Scaled values for color mapping
             z_data.append([
                 min(row_data['data_points'].iloc[0] / 1000, 100),  # Normalize to 0-100
                 min(row_data['days_old'].iloc[0] / 30, 100),  # Days to months
                 min(row_data['coverage_years'].iloc[0] / 50, 100)  # Years normalized
             ])
+            # Actual values for display
+            text_data.append([
+                f"{row_data['data_points'].iloc[0]:.0f}",
+                f"{row_data['days_old'].iloc[0]:.0f}",
+                f"{row_data['coverage_years'].iloc[0]:.1f}"
+            ])
         else:
             z_data.append([0, 0, 0])
+            text_data.append(["0", "0", "0"])
     
     fig = go.Figure(data=go.Heatmap(
         z=z_data,
@@ -205,7 +214,7 @@ def create_data_quality_heatmap():
         y=components,
         colorscale='RdYlGn',
         reversescale=False,
-        text=[[f"{val:.0f}" for val in row] for row in z_data],
+        text=text_data,
         texttemplate="%{text}",
         textfont={"size": 12},
         hovertemplate="Component: %{y}<br>Metric: %{x}<br>Score: %{z:.0f}<extra></extra>"
